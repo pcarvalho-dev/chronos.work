@@ -37,6 +37,7 @@ export class TimeLogController {
 
             res.status(201).json({ message: 'Checked in successfully', checkIn });
         } catch (error) {
+            console.error('Error in checkIn:', error);
             res.status(500).json({ message: 'Internal server error' });
         }
     }
@@ -69,6 +70,7 @@ export class TimeLogController {
 
             res.json({ message: 'Checked out successfully', timeLog });
         } catch (error) {
+            console.error('Error in checkOut:', error);
             res.status(500).json({ message: 'Internal server error' });
         }
     }
@@ -77,17 +79,32 @@ export class TimeLogController {
      * Get all time logs for the authenticated user
      */
     static async getTimeLogs(req: Request, res: Response) {
+        console.log('[TimeLogController.getTimeLogs] Method called');
+        console.log('[TimeLogController.getTimeLogs] User:', req.user);
+        console.log('[TimeLogController.getTimeLogs] Is Authenticated:', req.isAuthenticated());
+
         try {
             const timeLogRepository = AppDataSource.getRepository(UserCheckIn);
             const user = req.user as User;
 
-            const timeLogs = await timeLogRepository.find({
-                where: { user: { id: user.id } },
-                order: { checkIn: 'DESC' },
-            });
+            console.log('[TimeLogController.getTimeLogs] User after cast:', user);
 
+            if (!user) {
+                console.log('[TimeLogController.getTimeLogs] User is undefined/null');
+                return res.status(401).json({ message: 'User not authenticated' });
+            }
+
+            console.log('[TimeLogController.getTimeLogs] Querying database for user ID:', user.id);
+
+            const timeLogs = await timeLogRepository.createQueryBuilder('checkIn')
+                .where('checkIn.userId = :userId', { userId: user.id })
+                .orderBy('checkIn.checkIn', 'DESC')
+                .getMany();
+
+            console.log('[TimeLogController.getTimeLogs] Found', timeLogs.length, 'time logs for user', user.id);
             res.json(timeLogs);
         } catch (error) {
+            console.error('[TimeLogController.getTimeLogs] Error:', error);
             res.status(500).json({ message: 'Internal server error' });
         }
     }

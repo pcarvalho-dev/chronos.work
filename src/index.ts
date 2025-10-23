@@ -2,6 +2,7 @@ import "reflect-metadata";
 import express from "express";
 import session from "express-session";
 import morgan from "morgan";
+import cors from "cors";
 import passport from "./config/passport.js";
 import { AppDataSource } from "./database/data-source.js";
 import authRouter from "./routes/auth.js";
@@ -16,6 +17,12 @@ const __dirname = dirname(__filename);
 
 const app = express();
 
+// CORS Configuration
+app.use(cors({
+    origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"], // Frontend URLs
+    credentials: true, // Allow cookies
+}));
+
 // HTTP Request Logger
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
 
@@ -29,6 +36,12 @@ app.use(
         secret: jwtSecret, // Change this to a random secret key
         resave: false,
         saveUninitialized: false,
+        cookie: {
+            httpOnly: true,
+            secure: false, // Set to true if using HTTPS
+            sameSite: 'lax', // Allow cross-origin requests
+            maxAge: 1000 * 60 * 60 * 24, // 24 hours
+        },
     })
 );
 

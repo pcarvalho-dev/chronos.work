@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm";
 import { User } from "./User.js";
 
 @Entity()
@@ -7,6 +7,7 @@ export class UserCheckIn {
     id!: number;
 
     @ManyToOne(() => User)
+    @JoinColumn({ name: 'userId' })
     user!: User;
 
     @Column('timestamp')
