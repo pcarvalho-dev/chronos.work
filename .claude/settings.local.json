@@ -43,7 +43,17 @@
       "Bash(npm run migration:revert:*)",
       "Bash(npm run migration:gen:*)",
       "Bash(npm run typeorm:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npm run docs:gen:*)",
+      "Bash(tasklist:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File temp_add_refresh_token.ps1)",
+      "Bash(del temp_add_refresh_token.ps1 temp_refresh_field.txt)",
+      "Bash(powershell -ExecutionPolicy Bypass -File fix_indent.ps1:*)",
+      "Bash(node temp_update_openapi.js:*)",
+      "Bash(cat:*)",
+      "Bash(node add_profile_photo_endpoint.js:*)",
+      "Bash(node fix_timelog_controller.js:*)"
     ],
     "deny": [],
     "ask": []

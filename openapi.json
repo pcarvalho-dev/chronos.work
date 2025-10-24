@@ -25,6 +25,14 @@
     }
   ],
   "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Autenticação via JWT Bearer token no header Authorization"
+      }
+    },
     "schemas": {
       "LoginRequest": {
         "type": "object",
@@ -46,13 +54,48 @@
           "password"
         ]
       },
+      "ForgotPasswordRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email do usuário para recuperação de senha",
+            "example": "pablo@email.com"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "ResetPasswordRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Token de recuperação recebido por email",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 6,
+            "description": "Nova senha",
+            "example": "novaSenha123"
+          }
+        },
+        "required": [
+          "token",
+          "newPassword"
+        ]
+      },
       "RegisterRequest": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
+            "minLength": 3,
             "description": "Nome completo do usuário",
-            "example": "Pablo"
+            "example": "Pablo Silva"
           },
           "email": {
             "type": "string",
@@ -65,6 +108,207 @@
             "minLength": 6,
             "description": "Senha do usuário",
             "example": "123456"
+          },
+          "cpf": {
+            "type": "string",
+            "pattern": "^\\d{11}$",
+            "description": "CPF do usuário (11 dígitos)",
+            "example": "12345678901"
+          },
+          "rg": {
+            "type": "string",
+            "description": "RG do usuário",
+            "example": "123456789"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Data de nascimento",
+            "example": "1990-05-15"
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "Masculino",
+              "Feminino",
+              "Outro",
+              "Prefiro não informar"
+            ],
+            "description": "Gênero do usuário"
+          },
+          "maritalStatus": {
+            "type": "string",
+            "enum": [
+              "Solteiro(a)",
+              "Casado(a)",
+              "Divorciado(a)",
+              "Viúvo(a)",
+              "União Estável"
+            ],
+            "description": "Estado civil"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Telefone fixo",
+            "example": "(11) 1234-5678"
+          },
+          "mobilePhone": {
+            "type": "string",
+            "description": "Telefone celular",
+            "example": "(11) 91234-5678"
+          },
+          "address": {
+            "type": "string",
+            "description": "Logradouro",
+            "example": "Rua das Flores"
+          },
+          "addressNumber": {
+            "type": "string",
+            "description": "Número do endereço",
+            "example": "123"
+          },
+          "addressComplement": {
+            "type": "string",
+            "description": "Complemento do endereço",
+            "example": "Apto 45"
+          },
+          "neighborhood": {
+            "type": "string",
+            "description": "Bairro",
+            "example": "Centro"
+          },
+          "city": {
+            "type": "string",
+            "description": "Cidade",
+            "example": "São Paulo"
+          },
+          "state": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2,
+            "description": "Estado (UF)",
+            "example": "SP"
+          },
+          "zipCode": {
+            "type": "string",
+            "pattern": "^\\d{8}$",
+            "description": "CEP (8 dígitos)",
+            "example": "01234567"
+          },
+          "country": {
+            "type": "string",
+            "description": "País",
+            "example": "Brasil"
+          },
+          "employeeId": {
+            "type": "string",
+            "description": "Matrícula do funcionário",
+            "example": "EMP001"
+          },
+          "department": {
+            "type": "string",
+            "description": "Departamento",
+            "example": "TI"
+          },
+          "position": {
+            "type": "string",
+            "description": "Cargo",
+            "example": "Desenvolvedor Full Stack"
+          },
+          "hireDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Data de contratação",
+            "example": "2024-01-15"
+          },
+          "salary": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Salário",
+            "example": 5000
+          },
+          "workSchedule": {
+            "type": "string",
+            "description": "Jornada de trabalho",
+            "example": "Segunda a Sexta, 9h às 18h"
+          },
+          "employmentType": {
+            "type": "string",
+            "enum": [
+              "CLT",
+              "PJ",
+              "Estagiário",
+              "Freelancer",
+              "Temporário",
+              "Autônomo"
+            ],
+            "description": "Tipo de contrato"
+          },
+          "directSupervisor": {
+            "type": "string",
+            "description": "Supervisor direto",
+            "example": "João Santos"
+          },
+          "bankName": {
+            "type": "string",
+            "description": "Nome do banco",
+            "example": "Banco do Brasil"
+          },
+          "bankAccount": {
+            "type": "string",
+            "description": "Número da conta",
+            "example": "12345-6"
+          },
+          "bankAgency": {
+            "type": "string",
+            "description": "Agência bancária",
+            "example": "1234"
+          },
+          "bankAccountType": {
+            "type": "string",
+            "enum": [
+              "Corrente",
+              "Poupança",
+              "Salário"
+            ],
+            "description": "Tipo de conta bancária"
+          },
+          "pix": {
+            "type": "string",
+            "description": "Chave PIX",
+            "example": "pablo@email.com"
+          },
+          "emergencyContactName": {
+            "type": "string",
+            "description": "Nome do contato de emergência",
+            "example": "Maria Silva"
+          },
+          "emergencyContactPhone": {
+            "type": "string",
+            "description": "Telefone do contato de emergência",
+            "example": "(11) 98765-4321"
+          },
+          "emergencyContactRelationship": {
+            "type": "string",
+            "description": "Grau de parentesco do contato de emergência",
+            "example": "Mãe"
+          },
+          "education": {
+            "type": "string",
+            "enum": [
+              "Fundamental",
+              "Médio",
+              "Superior",
+              "Pós-graduação",
+              "Mestrado",
+              "Doutorado"
+            ],
+            "description": "Nível de escolaridade"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Observações adicionais",
+            "example": "Funcionário exemplar"
           }
         },
         "required": [
@@ -82,18 +326,169 @@
           },
           "name": {
             "type": "string",
-            "example": "Pablo"
+            "example": "Pablo Silva"
           },
           "email": {
             "type": "string",
             "format": "email",
             "example": "pablo@email.com"
+          },
+          "cpf": {
+            "type": "string",
+            "example": "12345678901"
+          },
+          "rg": {
+            "type": "string",
+            "example": "123456789"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date",
+            "example": "1990-05-15"
+          },
+          "gender": {
+            "type": "string",
+            "example": "Masculino"
+          },
+          "maritalStatus": {
+            "type": "string",
+            "example": "Solteiro(a)"
+          },
+          "phone": {
+            "type": "string",
+            "example": "(11) 1234-5678"
+          },
+          "mobilePhone": {
+            "type": "string",
+            "example": "(11) 91234-5678"
+          },
+          "address": {
+            "type": "string",
+            "example": "Rua das Flores"
+          },
+          "addressNumber": {
+            "type": "string",
+            "example": "123"
+          },
+          "addressComplement": {
+            "type": "string",
+            "example": "Apto 45"
+          },
+          "neighborhood": {
+            "type": "string",
+            "example": "Centro"
+          },
+          "city": {
+            "type": "string",
+            "example": "São Paulo"
+          },
+          "state": {
+            "type": "string",
+            "example": "SP"
+          },
+          "zipCode": {
+            "type": "string",
+            "example": "01234567"
+          },
+          "country": {
+            "type": "string",
+            "example": "Brasil"
+          },
+          "employeeId": {
+            "type": "string",
+            "example": "EMP001"
+          },
+          "department": {
+            "type": "string",
+            "example": "TI"
+          },
+          "position": {
+            "type": "string",
+            "example": "Desenvolvedor Full Stack"
+          },
+          "hireDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2024-01-15"
+          },
+          "salary": {
+            "type": "number",
+            "example": 5000
+          },
+          "workSchedule": {
+            "type": "string",
+            "example": "Segunda a Sexta, 9h às 18h"
+          },
+          "employmentType": {
+            "type": "string",
+            "example": "CLT"
+          },
+          "directSupervisor": {
+            "type": "string",
+            "example": "João Santos"
+          },
+          "bankName": {
+            "type": "string",
+            "example": "Banco do Brasil"
+          },
+          "bankAccount": {
+            "type": "string",
+            "example": "12345-6"
+          },
+          "bankAgency": {
+            "type": "string",
+            "example": "1234"
+          },
+          "bankAccountType": {
+            "type": "string",
+            "example": "Corrente"
+          },
+          "pix": {
+            "type": "string",
+            "example": "pablo@email.com"
+          },
+          "emergencyContactName": {
+            "type": "string",
+            "example": "Maria Silva"
+          },
+          "emergencyContactPhone": {
+            "type": "string",
+            "example": "(11) 98765-4321"
+          },
+          "emergencyContactRelationship": {
+            "type": "string",
+            "example": "Mãe"
+          },
+          "education": {
+            "type": "string",
+            "example": "Superior"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Funcionário exemplar"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-10-23T12:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-10-23T12:00:00.000Z"
           }
         },
         "required": [
           "id",
           "name",
-          "email"
+          "email",
+          "isActive",
+          "createdAt",
+          "updatedAt"
         ]
       },
       "TimeLog": {
@@ -123,6 +518,19 @@
           "id",
           "checkIn",
           "checkOut"
+        ]
+      },
+      "RefreshTokenRequest": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "description": "Refresh token obtido no login",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          }
+        },
+        "required": [
+          "refreshToken"
         ]
       },
       "ErrorResponse": {
@@ -193,10 +601,26 @@
                     "message": {
                       "type": "string",
                       "example": "User created successfully"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    },
+                    "accessToken": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                      "description": "Token JWT de acesso (válido por 15 minutos)"
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                      "description": "Token JWT de renovação (válido por 7 dias)"
                     }
                   },
                   "required": [
-                    "message"
+                    "message",
+                    "user",
+                    "accessToken",
+                    "refreshToken"
                   ]
                 }
               }
@@ -255,11 +679,23 @@
                     },
                     "user": {
                       "$ref": "#/components/schemas/User"
+                    },
+                    "accessToken": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                      "description": "Token JWT de acesso (válido por 15 minutos)"
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                      "description": "Token JWT de renovação (válido por 7 dias)"
                     }
                   },
                   "required": [
                     "message",
-                    "user"
+                    "user",
+                    "accessToken",
+                    "refreshToken"
                   ]
                 }
               }
@@ -288,6 +724,460 @@
         }
       }
     },
+    "/auth/forgot-password": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Solicitar recuperação de senha",
+        "description": "Envia um email com link para redefinir a senha",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email de recuperação enviado (se o email existir)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Se o email existir, um link de recuperação será enviado"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Redefinir senha",
+        "description": "Redefine a senha usando o token recebido por email",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Senha redefinida com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Senha redefinida com sucesso"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Token inválido ou expirado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/profile": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Obter perfil do usuário",
+        "description": "Retorna os dados do perfil do usuário autenticado, incluindo foto de perfil",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Perfil retornado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  },
+                  "required": [
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/profile-photo": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Obter foto de perfil do usuário",
+        "description": "Retorna a URL da foto de perfil do usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "URL da foto retornada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "profilePhoto": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "example": "/uploads/profiles/abc123.jpg",
+                      "description": "URL da foto de perfil do usuário"
+                    }
+                  },
+                  "required": [
+                    "profilePhoto"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Foto de perfil não encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Foto de perfil não encontrada"
+                    },
+                    "profilePhoto": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "profilePhoto"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh-token": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Renovar token de acesso",
+        "description": "Gera um novo par de tokens (access e refresh) usando um refresh token válido",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tokens renovados com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                      "description": "Novo token JWT de acesso"
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                      "description": "Novo token JWT de renovação"
+                    }
+                  },
+                  "required": [
+                    "accessToken",
+                    "refreshToken"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Refresh token não fornecido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Refresh token inválido ou expirado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Fazer logout",
+        "description": "Invalida o refresh token do usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logout realizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Logged out successfully"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/upload-photo": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Upload de foto de perfil",
+        "description": "Faz upload de uma foto de perfil do usuário autenticado. Aceita apenas imagens (JPEG, PNG, GIF) até 5MB.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "photo": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Arquivo de imagem (JPEG, PNG, GIF)"
+                  }
+                },
+                "required": [
+                  "photo"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Foto atualizada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Foto de perfil atualizada com sucesso"
+                    },
+                    "profilePhoto": {
+                      "type": "string",
+                      "example": "/uploads/profiles/abc123.jpg"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "profilePhoto"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Nenhum arquivo enviado ou tipo de arquivo inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/timelog/checkin": {
       "post": {
         "tags": [
@@ -297,7 +1187,7 @@
         "description": "Registra o início do turno de trabalho do usuário autenticado",
         "security": [
           {
-            "cookieAuth": []
+            "bearerAuth": []
           }
         ],
         "responses": {
@@ -366,7 +1256,7 @@
         "description": "Registra o fim do turno de trabalho do usuário autenticado",
         "security": [
           {
-            "cookieAuth": []
+            "bearerAuth": []
           }
         ],
         "responses": {
@@ -435,7 +1325,7 @@
         "description": "Retorna todos os registros de ponto do usuário autenticado, ordenados por data de entrada (mais recentes primeiro)",
         "security": [
           {
-            "cookieAuth": []
+            "bearerAuth": []
           }
         ],
         "responses": {
