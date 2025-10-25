@@ -5,11 +5,23 @@ import "reflect-metadata";
 import "dotenv/config";
 import dotenv from 'dotenv';
 import dns from 'dns';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
 // Force IPv4 resolution to avoid ENETUNREACH errors on Render/Supabase
 dns.setDefaultResultOrder('ipv4first');
 
 dotenv.config();
+
+// Detect if running compiled code (production) or TypeScript (development)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const isProduction = __dirname.includes('dist');
+
+// Use appropriate migration paths based on environment
+const migrationPaths = isProduction
+    ? ["dist/database/migrations/*.js"]
+    : ["src/database/migrations/*.ts"];
 
 // Check if using connection string (recommended for production)
 const useConnectionString = !!process.env.DATABASE_URL;
@@ -52,7 +64,7 @@ export const AppDataSource = new DataSource(
             synchronize: false,
             logging: true, // Enable logging to debug connection issues
             entities: [User, UserCheckIn],
-            migrations: ["src/database/migrations/*.ts"],
+            migrations: migrationPaths,
             subscribers: [],
         }
         : {
@@ -75,7 +87,7 @@ export const AppDataSource = new DataSource(
             synchronize: false,
             logging: false,
             entities: [User, UserCheckIn],
-            migrations: ["src/database/migrations/*.ts"],
+            migrations: migrationPaths,
             subscribers: [],
         }
 );
