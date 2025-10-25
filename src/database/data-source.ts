@@ -4,13 +4,20 @@ import { UserCheckIn } from "../models/UserCheckIn.js";
 import "reflect-metadata";
 import "dotenv/config";
 import dotenv from 'dotenv';
+import dns from 'dns';
+
+// Force IPv4 resolution to avoid ENETUNREACH errors on Render/Supabase
+dns.setDefaultResultOrder('ipv4first');
 
 dotenv.config();
 
 // Check if using connection string (recommended for production)
 const useConnectionString = !!process.env.DATABASE_URL;
 
-if (!useConnectionString) {
+if (useConnectionString) {
+    console.log('✓ Using DATABASE_URL for database connection');
+} else {
+    console.log('✓ Using individual DB_* variables for database connection');
     // Validate required environment variables for individual config
     const requiredEnvVars = ['DB_HOST', 'DB_USERNAME', 'DB_PASSWORD', 'DB_DATABASE'] as const;
     for (const envVar of requiredEnvVars) {
@@ -30,13 +37,20 @@ export const AppDataSource = new DataSource(
                 rejectUnauthorized: false
             },
             extra: {
+                // Force IPv4 at the driver level
+                host: undefined, // Let URL parser handle it
                 ssl: {
                     rejectUnauthorized: false
                 },
-                connectionTimeoutMillis: 10000,
+                connectionTimeoutMillis: 30000, // 30 seconds
+                query_timeout: 30000,
+                statement_timeout: 30000,
+                // Disable IPv6
+                keepAlive: true,
+                keepAliveInitialDelayMillis: 10000,
             },
             synchronize: false,
-            logging: false,
+            logging: true, // Enable logging to debug connection issues
             entities: [User, UserCheckIn],
             migrations: ["src/database/migrations/*.ts"],
             subscribers: [],

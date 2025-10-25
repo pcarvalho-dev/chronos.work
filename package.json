@@ -10,8 +10,9 @@
     "build": "tsc",
     "start:prod": "node dist/index.js",
     "docs:gen": "tsx scripts/generate-openapi.ts",
+    "check:db": "node scripts/check-db-config.js",
     "typeorm": "node --loader ts-node/esm ./node_modules/typeorm/cli.js -d src/database/data-source.ts",
-    "migration:run": "npm run typeorm -- migration:run",
+    "migration:run": "npm run check:db && npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",
     "migration:gen": "npm run typeorm -- migration:generate src/database/migrations/%npm_config_name% -t src/database/migration-template.ts"
   },
