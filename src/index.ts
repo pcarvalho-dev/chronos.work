@@ -70,12 +70,15 @@ app.get("/docs", (req, res) => {
 app.use("/auth", authRouter);
 app.use("/timelog", timeLogRouter);
 
-AppDataSource.initialize().then(() => {
-    console.log("Data Source has been initialized!");
-}).catch((err) => {
-    console.error("Error during Data Source initialization", err);
-});
+AppDataSource.initialize()
+    .then(() => {
+        console.log("Data Source has been initialized!");
 
-app.listen(apiPort, () => {
-    console.log("Server is running on port " + apiPort);
-});
+        app.listen(apiPort, () => {
+            console.log(`Server is running on port ${apiPort}`);
+        });
+    })
+    .catch((err) => {
+        console.error("Error during Data Source initialization:", err);
+        process.exit(1);
+    });
