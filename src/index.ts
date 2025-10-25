@@ -16,12 +16,28 @@ const app = express();
 
 // CORS Configuration
 app.use(cors({
-    origin: [
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://localhost:3002",
-        "https://chronoswork.com.br"
-    ],
+    origin: (origin, callback) => {
+        // Lista de origens permitidas (web)
+        const allowedOrigins = [
+            "http://localhost:3000",
+            "http://localhost:3001",
+            "http://localhost:3002",
+            "https://chronoswork.com.br"
+        ];
+
+        // Permitir requisições sem Origin (apps mobile, Postman, etc)
+        if (!origin) {
+            return callback(null, true);
+        }
+
+        // Permitir origens da lista
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        // Bloquear outras origens
+        callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
 }));
 
