@@ -7,34 +7,61 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Validate required environment variables
-const requiredEnvVars = ['DB_HOST', 'DB_USERNAME', 'DB_PASSWORD', 'DB_DATABASE'] as const;
-for (const envVar of requiredEnvVars) {
-    if (!process.env[envVar]) {
-        throw new Error(`Missing required environment variable: ${envVar}`);
+// Check if using connection string (recommended for production)
+const useConnectionString = !!process.env.DATABASE_URL;
+
+if (!useConnectionString) {
+    // Validate required environment variables for individual config
+    const requiredEnvVars = ['DB_HOST', 'DB_USERNAME', 'DB_PASSWORD', 'DB_DATABASE'] as const;
+    for (const envVar of requiredEnvVars) {
+        if (!process.env[envVar]) {
+            throw new Error(`Missing required environment variable: ${envVar} or DATABASE_URL`);
+        }
     }
 }
 
-export const AppDataSource = new DataSource({
-    type: 'postgres',
-    host: process.env.DB_HOST!,
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-    username: process.env.DB_USERNAME!,
-    password: process.env.DB_PASSWORD!,
-    database: process.env.DB_DATABASE!,
-    extra: {
-        ssl: {
-            rejectUnauthorized: false
-        },
-        // Force IPv4 to avoid ENETUNREACH errors on Render
-        connectionTimeoutMillis: 10000,
-    },
-    ssl: {
-        rejectUnauthorized: false
-    },
-    synchronize: false,
-    logging: false,
-    entities: [User, UserCheckIn],
-    migrations: ["src/database/migrations/*.ts"],
-    subscribers: [],
-});
+export const AppDataSource = new DataSource(
+    useConnectionString
+        ? {
+            // Production configuration using connection string (Supabase, Render, etc.)
+            type: 'postgres',
+            url: process.env.DATABASE_URL!,
+            ssl: {
+                rejectUnauthorized: false
+            },
+            extra: {
+                ssl: {
+                    rejectUnauthorized: false
+                },
+                connectionTimeoutMillis: 10000,
+            },
+            synchronize: false,
+            logging: false,
+            entities: [User, UserCheckIn],
+            migrations: ["src/database/migrations/*.ts"],
+            subscribers: [],
+        }
+        : {
+            // Development configuration using individual variables
+            type: 'postgres',
+            host: process.env.DB_HOST!,
+            port: parseInt(process.env.DB_PORT || '5432', 10),
+            username: process.env.DB_USERNAME!,
+            password: process.env.DB_PASSWORD!,
+            database: process.env.DB_DATABASE!,
+            extra: {
+                ssl: process.env.DB_SSL === 'true' ? {
+                    rejectUnauthorized: false
+                } : undefined,
+                connectionTimeoutMillis: 10000,
+            },
+            ssl: process.env.DB_SSL === 'true' ? {
+                rejectUnauthorized: false
+            } : false,
+            synchronize: false,
+            logging: false,
+            entities: [User, UserCheckIn],
+            migrations: ["src/database/migrations/*.ts"],
+            subscribers: [],
+        }
+);
