@@ -74,6 +74,11 @@ Create a `.env` file with these required variables:
 **Frontend Configuration:**
 - `FRONTEND_URL` - Frontend URL for email links (e.g., http://localhost:3000)
 
+**Cloudinary Configuration (File Uploads):**
+- `CLOUDINARY_CLOUD_NAME` - Your Cloudinary cloud name
+- `CLOUDINARY_API_KEY` - Your Cloudinary API key
+- `CLOUDINARY_API_SECRET` - Your Cloudinary API secret
+
 The application uses `docker-compose.yml` for PostgreSQL. Start with: `docker-compose up -d`
 
 **First-time setup checklist**:
@@ -194,9 +199,11 @@ This project follows the **MVC (Model-View-Controller)** pattern:
 7. **MVC Pattern**: Always separate concerns - routes define endpoints, controllers handle logic, models define data
 8. **TypeORM Column Types**: Always specify explicit column types (e.g., `@Column('varchar')`) instead of relying on `emitDecoratorMetadata` for better tsx compatibility
 9. **File Uploads**:
-   - Uses multer configured in `src/config/multer.ts`
-   - Profile photos saved to `uploads/profiles/` directory
-   - Accessible via `/uploads/profiles/<filename>` endpoint
+   - Uses multer with Cloudinary storage configured in `src/config/multer.ts`
+   - Profile photos uploaded to Cloudinary folder `chronos-work/profiles`
+   - Check-in photos uploaded to Cloudinary folder `chronos-work/checkins`
+   - Photos automatically optimized with size limits (500x500 for profiles, 1000x1000 for check-ins)
+   - URLs returned are full Cloudinary URLs accessible from anywhere
 10. **Email Service**:
     - Asynchronous, non-blocking email sending
     - Uses `.catch()` to handle errors without failing requests

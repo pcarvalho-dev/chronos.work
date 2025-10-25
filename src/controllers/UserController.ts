@@ -214,8 +214,8 @@ export class UserController {
             const userRepository = AppDataSource.getRepository(User);
             const user = req.user as User;
 
-            // Update user profile photo
-            user.profilePhoto = `/uploads/profiles/${req.file.filename}`;
+            // With Cloudinary, req.file.path contains the full Cloudinary URL
+            user.profilePhoto = (req.file as any).path;
             await userRepository.save(user);
 
             res.json({

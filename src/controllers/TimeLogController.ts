@@ -49,7 +49,8 @@ export class TimeLogController {
             // Fetch address from coordinates
             const location = await LocationService.getAddressFromCoordinates(lat, lon);
 
-            const checkInPhoto = `/uploads/checkins/${req.file.filename}`;
+            // With Cloudinary, req.file.path contains the full Cloudinary URL
+            const checkInPhoto = (req.file as any).path;
 
             const checkIn = timeLogRepository.create({
                 user,
@@ -112,7 +113,8 @@ export class TimeLogController {
             const location = await LocationService.getAddressFromCoordinates(lat, lon);
 
             timeLog.checkOut = new Date();
-            timeLog.checkOutPhoto = `/uploads/checkins/${req.file.filename}`;
+            // With Cloudinary, req.file.path contains the full Cloudinary URL
+            timeLog.checkOutPhoto = (req.file as any).path;
             timeLog.checkOutLatitude = lat;
             timeLog.checkOutLongitude = lon;
             timeLog.checkOutLocation = location;
