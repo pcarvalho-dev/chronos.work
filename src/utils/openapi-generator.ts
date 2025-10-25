@@ -261,6 +261,38 @@ const TimeLogSchema = registry.register(
     checkOut: z.string().datetime().nullable().openapi({
       description: 'Data e hora de saída (null se ainda não fez checkout)',
       example: '2025-10-22T23:00:00.000Z'
+    }),
+    checkInPhoto: z.string().nullable().openapi({
+      description: 'URL da foto tirada no momento do check-in',
+      example: '/uploads/checkins/abc123.jpg'
+    }),
+    checkOutPhoto: z.string().nullable().openapi({
+      description: 'URL da foto tirada no momento do check-out',
+      example: '/uploads/checkins/def456.jpg'
+    }),
+    checkInLatitude: z.number().nullable().openapi({
+      description: 'Latitude da localização do check-in',
+      example: -23.5505199
+    }),
+    checkInLongitude: z.number().nullable().openapi({
+      description: 'Longitude da localização do check-in',
+      example: -46.6333094
+    }),
+    checkInLocation: z.string().nullable().openapi({
+      description: 'Endereço completo do check-in obtido via geocoding reverso',
+      example: 'Avenida Paulista, 1578, Bela Vista, São Paulo, Brasil'
+    }),
+    checkOutLatitude: z.number().nullable().openapi({
+      description: 'Latitude da localização do check-out',
+      example: -23.5505199
+    }),
+    checkOutLongitude: z.number().nullable().openapi({
+      description: 'Longitude da localização do check-out',
+      example: -46.6333094
+    }),
+    checkOutLocation: z.string().nullable().openapi({
+      description: 'Endereço completo do check-out obtido via geocoding reverso',
+      example: 'Avenida Paulista, 1578, Bela Vista, São Paulo, Brasil'
     })
   })
 );
@@ -759,8 +791,37 @@ registry.registerPath({
   path: '/timelog/checkin',
   tags: ['Time Tracking'],
   summary: 'Registrar entrada',
-  description: 'Registra o início do turno de trabalho do usuário autenticado',
+  description: 'Registra o início do turno de trabalho do usuário autenticado. Requer uma foto e localização (latitude/longitude). O endereço é obtido automaticamente via API de geocoding reverso.',
   security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            properties: {
+              photo: {
+                type: 'string',
+                format: 'binary',
+                description: 'Foto obrigatória do momento do check-in (JPEG, PNG, GIF até 5MB)'
+              },
+              latitude: {
+                type: 'number',
+                description: 'Latitude da localização (-90 a 90)',
+                example: -23.5505199
+              },
+              longitude: {
+                type: 'number',
+                description: 'Longitude da localização (-180 a 180)',
+                example: -46.6333094
+              }
+            },
+            required: ['photo', 'latitude', 'longitude']
+          }
+        }
+      }
+    }
+  },
   responses: {
     201: {
       description: 'Check-in realizado com sucesso',
@@ -771,7 +832,7 @@ registry.registerPath({
       }
     },
     400: {
-      description: 'Usuário já possui check-in ativo',
+      description: 'Foto ou localização não enviada, coordenadas inválidas, usuário já possui check-in ativo, ou tipo de arquivo inválido',
       content: {
         'application/json': {
           schema: ErrorResponseSchema
@@ -802,8 +863,37 @@ registry.registerPath({
   path: '/timelog/checkout',
   tags: ['Time Tracking'],
   summary: 'Registrar saída',
-  description: 'Registra o fim do turno de trabalho do usuário autenticado',
+  description: 'Registra o fim do turno de trabalho do usuário autenticado. Requer uma foto e localização (latitude/longitude). O endereço é obtido automaticamente via API de geocoding reverso.',
   security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            properties: {
+              photo: {
+                type: 'string',
+                format: 'binary',
+                description: 'Foto obrigatória do momento do check-out (JPEG, PNG, GIF até 5MB)'
+              },
+              latitude: {
+                type: 'number',
+                description: 'Latitude da localização (-90 a 90)',
+                example: -23.5505199
+              },
+              longitude: {
+                type: 'number',
+                description: 'Longitude da localização (-180 a 180)',
+                example: -46.6333094
+              }
+            },
+            required: ['photo', 'latitude', 'longitude']
+          }
+        }
+      }
+    }
+  },
   responses: {
     200: {
       description: 'Check-out realizado com sucesso',
@@ -814,7 +904,7 @@ registry.registerPath({
       }
     },
     400: {
-      description: 'Usuário não possui check-in ativo',
+      description: 'Foto ou localização não enviada, coordenadas inválidas, usuário não possui check-in ativo, ou tipo de arquivo inválido',
       content: {
         'application/json': {
           schema: ErrorResponseSchema
@@ -845,7 +935,7 @@ registry.registerPath({
   path: '/timelog',
   tags: ['Time Tracking'],
   summary: 'Listar registros de tempo',
-  description: 'Retorna todos os registros de ponto do usuário autenticado, ordenados por data de entrada (mais recentes primeiro)',
+  description: 'Retorna todos os registros de ponto do usuário autenticado, incluindo fotos, coordenadas geográficas e endereços completos de cada check-in e check-out. Ordenados por data de entrada (mais recentes primeiro).',
   security: [{ bearerAuth: [] }],
   responses: {
     200: {

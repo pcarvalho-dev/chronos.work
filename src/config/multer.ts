@@ -34,3 +34,22 @@ export const upload = multer({
         fileSize: 5 * 1024 * 1024 // 5MB
     }
 });
+
+// Multer configuration for check-in/check-out photos
+const checkinStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, path.join(__dirname, '../../uploads/checkins'));
+    },
+    filename: (req, file, cb) => {
+        const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
+        cb(null, uniqueName);
+    }
+});
+
+export const checkinUpload = multer({
+    storage: checkinStorage,
+    fileFilter,
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB
+    }
+});

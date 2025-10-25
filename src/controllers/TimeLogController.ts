@@ -3,6 +3,7 @@ import { AppDataSource } from '../database/data-source.js';
 import { UserCheckIn } from '../models/UserCheckIn.js';
 import { User } from '../models/User.js';
 import { IsNull } from 'typeorm';
+import { LocationService } from '../services/locationService.js';
 
 export class TimeLogController {
     /**
@@ -10,6 +11,23 @@ export class TimeLogController {
      */
     static async checkIn(req: Request, res: Response) {
         try {
+            if (!req.file) {
+                return res.status(400).json({ message: 'Photo is required for check-in' });
+            }
+
+            const { latitude, longitude } = req.body;
+
+            if (!latitude || !longitude) {
+                return res.status(400).json({ message: 'Latitude and longitude are required' });
+            }
+
+            const lat = parseFloat(latitude);
+            const lon = parseFloat(longitude);
+
+            if (!LocationService.isValidCoordinates(lat, lon)) {
+                return res.status(400).json({ message: 'Invalid coordinates' });
+            }
+
             const timeLogRepository = AppDataSource.getRepository(UserCheckIn);
             const userRepository = AppDataSource.getRepository(User);
 
@@ -28,9 +46,18 @@ export class TimeLogController {
                 return res.status(400).json({ message: 'User already checked in' });
             }
 
+            // Fetch address from coordinates
+            const location = await LocationService.getAddressFromCoordinates(lat, lon);
+
+            const checkInPhoto = `/uploads/checkins/${req.file.filename}`;
+
             const checkIn = timeLogRepository.create({
                 user,
                 checkIn: new Date(),
+                checkInPhoto,
+                checkInLatitude: lat,
+                checkInLongitude: lon,
+                checkInLocation: location,
             });
 
             await timeLogRepository.save(checkIn);
@@ -47,6 +74,23 @@ export class TimeLogController {
      */
     static async checkOut(req: Request, res: Response) {
         try {
+            if (!req.file) {
+                return res.status(400).json({ message: 'Photo is required for check-out' });
+            }
+
+            const { latitude, longitude } = req.body;
+
+            if (!latitude || !longitude) {
+                return res.status(400).json({ message: 'Latitude and longitude are required' });
+            }
+
+            const lat = parseFloat(latitude);
+            const lon = parseFloat(longitude);
+
+            if (!LocationService.isValidCoordinates(lat, lon)) {
+                return res.status(400).json({ message: 'Invalid coordinates' });
+            }
+
             const timeLogRepository = AppDataSource.getRepository(UserCheckIn);
             const userRepository = AppDataSource.getRepository(User);
 
@@ -64,7 +108,14 @@ export class TimeLogController {
                 return res.status(400).json({ message: 'User not checked in' });
             }
 
+            // Fetch address from coordinates
+            const location = await LocationService.getAddressFromCoordinates(lat, lon);
+
             timeLog.checkOut = new Date();
+            timeLog.checkOutPhoto = `/uploads/checkins/${req.file.filename}`;
+            timeLog.checkOutLatitude = lat;
+            timeLog.checkOutLongitude = lon;
+            timeLog.checkOutLocation = location;
 
             await timeLogRepository.save(timeLog);
 
@@ -77,6 +128,7 @@ export class TimeLogController {
 
     /**
      * Get all time logs for the authenticated user
+     * Returns all fields including photos, coordinates, and location addresses
      */
     static async getTimeLogs(req: Request, res: Response) {
         try {
@@ -87,6 +139,7 @@ export class TimeLogController {
                 return res.status(401).json({ message: 'User not authenticated' });
             }
 
+            // Returns all fields including location data (latitude, longitude, addresses)
             const timeLogs = await timeLogRepository.createQueryBuilder('checkIn')
                 .where('checkIn.userId = :userId', { userId: user.id })
                 .orderBy('checkIn.checkIn', 'DESC')
