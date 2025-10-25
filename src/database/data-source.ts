@@ -3,8 +3,6 @@ import { User } from "../models/User.js";
 import { UserCheckIn } from "../models/UserCheckIn.js";
 import "reflect-metadata";
 import "dotenv/config";
-
-// Load environment variables
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -27,6 +25,7 @@ export const AppDataSource = new DataSource({
     extra: {
         family: 4
     },
+    ssl: true,
     synchronize: false,
     logging: false,
     entities: [User, UserCheckIn],
