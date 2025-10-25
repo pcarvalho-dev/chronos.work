@@ -23,19 +23,19 @@ export class UserCheckIn {
     checkOutPhoto?: string;
 
     @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
-    checkInLatitude?: number;
+    latitude?: number;
 
     @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
-    checkInLongitude?: number;
+    longitude?: number;
 
     @Column({ type: 'text', nullable: true })
     checkInLocation?: string;
 
     @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
-    checkOutLatitude?: number;
+    outLatitude?: number;
 
     @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
-    checkOutLongitude?: number;
+    outLongitude?: number;
 
     @Column({ type: 'text', nullable: true })
     checkOutLocation?: string;

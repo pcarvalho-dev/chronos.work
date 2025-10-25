@@ -56,8 +56,8 @@ export class TimeLogController {
                 user,
                 checkIn: new Date(),
                 checkInPhoto,
-                checkInLatitude: lat,
-                checkInLongitude: lon,
+                latitude: lat,
+                longitude: lon,
                 checkInLocation: location,
             });
 
@@ -115,8 +115,8 @@ export class TimeLogController {
             timeLog.checkOut = new Date();
             // With Cloudinary, req.file.path contains the full Cloudinary URL
             timeLog.checkOutPhoto = (req.file as any).path;
-            timeLog.checkOutLatitude = lat;
-            timeLog.checkOutLongitude = lon;
+            timeLog.outLatitude = lat;
+            timeLog.outLongitude = lon;
             timeLog.checkOutLocation = location;
 
             await timeLogRepository.save(timeLog);

@@ -270,11 +270,11 @@ const TimeLogSchema = registry.register(
       description: 'URL da foto tirada no momento do check-out',
       example: '/uploads/checkins/def456.jpg'
     }),
-    checkInLatitude: z.number().nullable().openapi({
+    latitude: z.number().nullable().openapi({
       description: 'Latitude da localização do check-in',
       example: -23.5505199
     }),
-    checkInLongitude: z.number().nullable().openapi({
+    longitude: z.number().nullable().openapi({
       description: 'Longitude da localização do check-in',
       example: -46.6333094
     }),
@@ -282,11 +282,11 @@ const TimeLogSchema = registry.register(
       description: 'Endereço completo do check-in obtido via geocoding reverso',
       example: 'Avenida Paulista, 1578, Bela Vista, São Paulo, Brasil'
     }),
-    checkOutLatitude: z.number().nullable().openapi({
+    outLatitude: z.number().nullable().openapi({
       description: 'Latitude da localização do check-out',
       example: -23.5505199
     }),
-    checkOutLongitude: z.number().nullable().openapi({
+    outLongitude: z.number().nullable().openapi({
       description: 'Longitude da localização do check-out',
       example: -46.6333094
     }),
