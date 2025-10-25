@@ -23,9 +23,15 @@ export const AppDataSource = new DataSource({
     password: process.env.DB_PASSWORD!,
     database: process.env.DB_DATABASE!,
     extra: {
-        family: 4
+        ssl: {
+            rejectUnauthorized: false
+        },
+        // Force IPv4 to avoid ENETUNREACH errors on Render
+        connectionTimeoutMillis: 10000,
     },
-    ssl: true,
+    ssl: {
+        rejectUnauthorized: false
+    },
     synchronize: false,
     logging: false,
     entities: [User, UserCheckIn],
