@@ -10,7 +10,7 @@ router.get('/test', (req, res) => {
     res.json({
         message: 'TimeLog API is working!',
         timestamp: new Date().toISOString(),
-        authenticated: req.isAuthenticated()
+        authenticated: !!req.isAuthenticated?.()
     });
 });
 
