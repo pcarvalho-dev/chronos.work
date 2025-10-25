@@ -65,7 +65,7 @@ export class UserController {
 
             const hashedPassword = await bcrypt.hash(password, 10);
 
-            // Convert date strings to Date objects if provided
+            // ... (processedData fica igual)
             const processedData: any = { ...userData };
             if (processedData.birthDate) {
                 processedData.birthDate = new Date(processedData.birthDate);
@@ -74,27 +74,21 @@ export class UserController {
                 processedData.hireDate = new Date(processedData.hireDate);
             }
 
-            const user = userRepository.create({
+            const newUser = await userRepository.save({
                 ...processedData,
                 password: hashedPassword,
             });
 
-            await userRepository.save(user);
+            const { accessToken, refreshToken } = JwtService.generateTokens(newUser.id, newUser.email);
 
-            // Generate tokens
-            const { accessToken, refreshToken } = JwtService.generateTokens(user.id, user.email);
+            newUser.refreshToken = refreshToken;
+            await userRepository.save(newUser);
 
-            // Save refresh token to database
-            user.refreshToken = refreshToken;
-            await userRepository.save(user);
-
-            // Send welcome email (don't wait for it to complete)
-            emailService.sendWelcomeEmail(user.email, user.name).catch(err => {
+            emailService.sendWelcomeEmail(newUser.email, newUser.name).catch(err => {
                 console.error('Error sending welcome email:', err);
             });
 
-            // Remove sensitive data from response
-            const { password: _, refreshToken: __, ...userResponse } = user as any;
+            const { password: _, refreshToken: __, ...userResponse } = newUser as any;
 
             res.status(201).json({
                 message: 'User created successfully',
