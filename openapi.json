@@ -88,6 +88,229 @@
           "newPassword"
         ]
       },
+      "UpdateProfileRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 3,
+            "description": "Nome completo do usuário",
+            "example": "Pablo Silva"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email do usuário (deve ser único)",
+            "example": "pablo@email.com"
+          },
+          "cpf": {
+            "type": "string",
+            "pattern": "^\\d{11}$",
+            "description": "CPF do usuário (11 dígitos)",
+            "example": "12345678901"
+          },
+          "rg": {
+            "type": "string",
+            "description": "RG do usuário",
+            "example": "123456789"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Data de nascimento",
+            "example": "1990-05-15"
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "Masculino",
+              "Feminino",
+              "Outro",
+              "Prefiro não informar"
+            ],
+            "description": "Gênero do usuário"
+          },
+          "maritalStatus": {
+            "type": "string",
+            "enum": [
+              "Solteiro(a)",
+              "Casado(a)",
+              "Divorciado(a)",
+              "Viúvo(a)",
+              "União Estável"
+            ],
+            "description": "Estado civil"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Telefone fixo",
+            "example": "(11) 1234-5678"
+          },
+          "mobilePhone": {
+            "type": "string",
+            "description": "Telefone celular",
+            "example": "(11) 91234-5678"
+          },
+          "address": {
+            "type": "string",
+            "description": "Logradouro",
+            "example": "Rua das Flores"
+          },
+          "addressNumber": {
+            "type": "string",
+            "description": "Número do endereço",
+            "example": "123"
+          },
+          "addressComplement": {
+            "type": "string",
+            "description": "Complemento do endereço",
+            "example": "Apto 45"
+          },
+          "neighborhood": {
+            "type": "string",
+            "description": "Bairro",
+            "example": "Centro"
+          },
+          "city": {
+            "type": "string",
+            "description": "Cidade",
+            "example": "São Paulo"
+          },
+          "state": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2,
+            "description": "Estado (UF)",
+            "example": "SP"
+          },
+          "zipCode": {
+            "type": "string",
+            "pattern": "^\\d{8}$",
+            "description": "CEP (8 dígitos)",
+            "example": "01234567"
+          },
+          "country": {
+            "type": "string",
+            "description": "País",
+            "example": "Brasil"
+          },
+          "employeeId": {
+            "type": "string",
+            "description": "Matrícula do funcionário",
+            "example": "EMP001"
+          },
+          "department": {
+            "type": "string",
+            "description": "Departamento",
+            "example": "TI"
+          },
+          "position": {
+            "type": "string",
+            "description": "Cargo",
+            "example": "Desenvolvedor Full Stack"
+          },
+          "hireDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Data de contratação",
+            "example": "2024-01-15"
+          },
+          "salary": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Salário",
+            "example": 5000
+          },
+          "workSchedule": {
+            "type": "string",
+            "description": "Jornada de trabalho",
+            "example": "Segunda a Sexta, 9h às 18h"
+          },
+          "employmentType": {
+            "type": "string",
+            "enum": [
+              "CLT",
+              "PJ",
+              "Estagiário",
+              "Freelancer",
+              "Temporário",
+              "Autônomo"
+            ],
+            "description": "Tipo de contrato"
+          },
+          "directSupervisor": {
+            "type": "string",
+            "description": "Supervisor direto",
+            "example": "João Santos"
+          },
+          "bankName": {
+            "type": "string",
+            "description": "Nome do banco",
+            "example": "Banco do Brasil"
+          },
+          "bankAccount": {
+            "type": "string",
+            "description": "Número da conta",
+            "example": "12345-6"
+          },
+          "bankAgency": {
+            "type": "string",
+            "description": "Agência bancária",
+            "example": "1234"
+          },
+          "bankAccountType": {
+            "type": "string",
+            "enum": [
+              "Corrente",
+              "Poupança",
+              "Salário"
+            ],
+            "description": "Tipo de conta bancária"
+          },
+          "pix": {
+            "type": "string",
+            "description": "Chave PIX",
+            "example": "pablo@email.com"
+          },
+          "emergencyContactName": {
+            "type": "string",
+            "description": "Nome do contato de emergência",
+            "example": "Maria Silva"
+          },
+          "emergencyContactPhone": {
+            "type": "string",
+            "description": "Telefone do contato de emergência",
+            "example": "(11) 98765-4321"
+          },
+          "emergencyContactRelationship": {
+            "type": "string",
+            "description": "Grau de parentesco do contato de emergência",
+            "example": "Mãe"
+          },
+          "education": {
+            "type": "string",
+            "enum": [
+              "Fundamental",
+              "Médio",
+              "Superior",
+              "Pós-graduação",
+              "Mestrado",
+              "Doutorado"
+            ],
+            "description": "Nível de escolaridade"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Observações adicionais",
+            "example": "Funcionário exemplar"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Status do usuário",
+            "example": true
+          }
+        }
+      },
       "RegisterRequest": {
         "type": "object",
         "properties": {
@@ -529,7 +752,7 @@
             "description": "URL da foto tirada no momento do check-out",
             "example": "/uploads/checkins/def456.jpg"
           },
-          "checkInLatitude": {
+          "latitude": {
             "type": [
               "number",
               "null"
@@ -537,7 +760,7 @@
             "description": "Latitude da localização do check-in",
             "example": -23.5505199
           },
-          "checkInLongitude": {
+          "longitude": {
             "type": [
               "number",
               "null"
@@ -553,7 +776,7 @@
             "description": "Endereço completo do check-in obtido via geocoding reverso",
             "example": "Avenida Paulista, 1578, Bela Vista, São Paulo, Brasil"
           },
-          "checkOutLatitude": {
+          "outLatitude": {
             "type": [
               "number",
               "null"
@@ -561,7 +784,7 @@
             "description": "Latitude da localização do check-out",
             "example": -23.5505199
           },
-          "checkOutLongitude": {
+          "outLongitude": {
             "type": [
               "number",
               "null"
@@ -576,6 +799,46 @@
             ],
             "description": "Endereço completo do check-out obtido via geocoding reverso",
             "example": "Avenida Paulista, 1578, Bela Vista, São Paulo, Brasil"
+          },
+          "isManual": {
+            "type": "boolean",
+            "description": "Indica se é um lançamento manual",
+            "example": false
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Motivo do lançamento manual",
+            "example": "Esqueci de bater o ponto"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending_approval",
+              "approved",
+              "rejected"
+            ],
+            "description": "Status do lançamento: pending_approval (aguardando), approved (aprovado), rejected (rejeitado)",
+            "example": "approved"
+          },
+          "approvalDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Data de aprovação ou rejeição",
+            "example": "2025-10-23T10:00:00.000Z"
+          },
+          "rejectionReason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Motivo da rejeição (se rejeitado)",
+            "example": null
           }
         },
         "required": [
@@ -584,12 +847,17 @@
           "checkOut",
           "checkInPhoto",
           "checkOutPhoto",
-          "checkInLatitude",
-          "checkInLongitude",
+          "latitude",
+          "longitude",
           "checkInLocation",
-          "checkOutLatitude",
-          "checkOutLongitude",
-          "checkOutLocation"
+          "outLatitude",
+          "outLongitude",
+          "checkOutLocation",
+          "isManual",
+          "reason",
+          "status",
+          "approvalDate",
+          "rejectionReason"
         ]
       },
       "RefreshTokenRequest": {
@@ -603,6 +871,125 @@
         },
         "required": [
           "refreshToken"
+        ]
+      },
+      "ManualCheckInRequest": {
+        "type": "object",
+        "properties": {
+          "checkIn": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data e hora de entrada (formato ISO 8601)",
+            "example": "2025-10-22T08:00:00.000Z"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 10,
+            "description": "Motivo do lançamento manual (mínimo 10 caracteres)",
+            "example": "Esqueci de bater o ponto ao chegar no trabalho"
+          },
+          "checkInLocation": {
+            "type": "string",
+            "description": "Endereço do check-in (opcional)",
+            "example": "Escritório Central"
+          },
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90,
+            "description": "Latitude (opcional)",
+            "example": -23.5505199
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180,
+            "description": "Longitude (opcional)",
+            "example": -46.6333094
+          }
+        },
+        "required": [
+          "checkIn",
+          "reason"
+        ]
+      },
+      "ManualCheckOutRequest": {
+        "type": "object",
+        "properties": {
+          "timeLogId": {
+            "type": "integer",
+            "description": "ID do registro de ponto",
+            "example": 1
+          },
+          "checkOut": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data e hora de saída (formato ISO 8601)",
+            "example": "2025-10-22T17:00:00.000Z"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 10,
+            "description": "Motivo do lançamento manual (mínimo 10 caracteres)",
+            "example": "Esqueci de bater o ponto ao sair do trabalho"
+          },
+          "checkOutLocation": {
+            "type": "string",
+            "description": "Endereço do check-out (opcional)",
+            "example": "Escritório Central"
+          },
+          "outLatitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90,
+            "description": "Latitude (opcional)",
+            "example": -23.5505199
+          },
+          "outLongitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180,
+            "description": "Longitude (opcional)",
+            "example": -46.6333094
+          }
+        },
+        "required": [
+          "timeLogId",
+          "checkOut",
+          "reason"
+        ]
+      },
+      "ApproveTimeLogRequest": {
+        "type": "object",
+        "properties": {
+          "timeLogId": {
+            "type": "integer",
+            "description": "ID do registro de ponto a ser aprovado",
+            "example": 1
+          }
+        },
+        "required": [
+          "timeLogId"
+        ]
+      },
+      "RejectTimeLogRequest": {
+        "type": "object",
+        "properties": {
+          "timeLogId": {
+            "type": "integer",
+            "description": "ID do registro de ponto a ser rejeitado",
+            "example": 1
+          },
+          "rejectionReason": {
+            "type": "string",
+            "minLength": 10,
+            "description": "Motivo da rejeição (mínimo 10 caracteres)",
+            "example": "Horário informado não corresponde ao expediente"
+          }
+        },
+        "required": [
+          "timeLogId",
+          "rejectionReason"
         ]
       },
       "ErrorResponse": {
@@ -931,6 +1318,82 @@
                   "required": [
                     "user"
                   ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Atualizar perfil do usuário",
+        "description": "Atualiza as informações do perfil do usuário autenticado. Todos os campos são opcionais - envie apenas os campos que deseja atualizar.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Perfil atualizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Perfil atualizado com sucesso"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Email já está em uso ou erro de validação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1456,7 +1919,424 @@
           "Time Tracking"
         ],
         "summary": "Listar registros de tempo",
-        "description": "Retorna todos os registros de ponto do usuário autenticado, incluindo fotos, coordenadas geográficas e endereços completos de cada check-in e check-out. Ordenados por data de entrada (mais recentes primeiro).",
+        "description": "Retorna todos os registros de ponto do usuário autenticado, incluindo fotos, coordenadas geográficas e endereços completos de cada check-in e check-out. Ordenados por data de entrada (mais recentes primeiro). Suporta filtros opcionais por data.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Data inicial para filtrar os registros (formato: YYYY-MM-DD). Retorna registros a partir desta data (inclusive).",
+              "example": "2025-10-01"
+            },
+            "required": false,
+            "description": "Data inicial para filtrar os registros (formato: YYYY-MM-DD). Retorna registros a partir desta data (inclusive).",
+            "name": "startDate",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Data final para filtrar os registros (formato: YYYY-MM-DD). Retorna registros até esta data (inclusive).",
+              "example": "2025-10-26"
+            },
+            "required": false,
+            "description": "Data final para filtrar os registros (formato: YYYY-MM-DD). Retorna registros até esta data (inclusive).",
+            "name": "endDate",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de registros retornada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TimeLog"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/timelog/manual-checkin": {
+      "post": {
+        "tags": [
+          "Time Tracking"
+        ],
+        "summary": "Lançar check-in manualmente (retroativo)",
+        "description": "Cria um lançamento manual de check-in retroativo. O registro ficará com status \"pending_approval\" até que um gestor aprove.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualCheckInRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Lançamento manual criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Lançamento manual de check-in criado. Aguardando aprovação."
+                    },
+                    "checkIn": {
+                      "$ref": "#/components/schemas/TimeLog"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "checkIn"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro de validação ou usuário já possui check-in ativo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/timelog/manual-checkout": {
+      "post": {
+        "tags": [
+          "Time Tracking"
+        ],
+        "summary": "Lançar check-out manualmente (retroativo)",
+        "description": "Adiciona um check-out manual a um registro de ponto existente. O registro ficará com status \"pending_approval\" até que um gestor aprove.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualCheckOutRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Check-out manual adicionado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Lançamento manual de check-out criado. Aguardando aprovação."
+                    },
+                    "timeLog": {
+                      "$ref": "#/components/schemas/TimeLog"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "timeLog"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Registro não encontrado, erro de validação, ou registro já possui check-out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Registro de ponto não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/timelog/approve": {
+      "post": {
+        "tags": [
+          "Time Tracking"
+        ],
+        "summary": "Aprovar lançamento manual (gestor)",
+        "description": "Aprova um lançamento manual de ponto. Requer permissões de gestor.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveTimeLogRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lançamento aprovado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Lançamento manual aprovado com sucesso"
+                    },
+                    "timeLog": {
+                      "$ref": "#/components/schemas/TimeLog"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "timeLog"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro de validação, registro não é manual, ou já foi processado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Registro de ponto não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/timelog/reject": {
+      "post": {
+        "tags": [
+          "Time Tracking"
+        ],
+        "summary": "Rejeitar lançamento manual (gestor)",
+        "description": "Rejeita um lançamento manual de ponto com um motivo. Requer permissões de gestor.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectTimeLogRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lançamento rejeitado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Lançamento manual rejeitado"
+                    },
+                    "timeLog": {
+                      "$ref": "#/components/schemas/TimeLog"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "timeLog"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro de validação, registro não é manual, ou já foi processado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Registro de ponto não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/timelog/pending": {
+      "get": {
+        "tags": [
+          "Time Tracking"
+        ],
+        "summary": "Listar lançamentos pendentes de aprovação (gestor)",
+        "description": "Retorna todos os lançamentos manuais com status pending_approval. Requer permissões de gestor.",
         "security": [
           {
             "bearerAuth": []
@@ -1464,7 +2344,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Lista de registros retornada com sucesso",
+            "description": "Lista de lançamentos pendentes",
             "content": {
               "application/json": {
                 "schema": {

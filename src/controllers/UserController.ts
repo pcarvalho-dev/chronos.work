@@ -180,6 +180,53 @@ export class UserController {
     }
 
     /**
+     * Update authenticated user profile
+     */
+    static async updateProfile(req: Request, res: Response) {
+        try {
+            const user = req.user as User;
+            const userRepository = AppDataSource.getRepository(User);
+            const updateData = req.body;
+
+            // If email is being updated, check if it's already in use by another user
+            if (updateData.email && updateData.email !== user.email) {
+                const existingUser = await userRepository.findOne({
+                    where: { email: updateData.email }
+                });
+
+                if (existingUser) {
+                    return res.status(400).json({ message: 'Email já está em uso' });
+                }
+            }
+
+            // Process date fields if present
+            if (updateData.birthDate) {
+                updateData.birthDate = new Date(updateData.birthDate);
+            }
+            if (updateData.hireDate) {
+                updateData.hireDate = new Date(updateData.hireDate);
+            }
+
+            // Update user fields
+            Object.assign(user, updateData);
+
+            // Save updated user
+            await userRepository.save(user);
+
+            // Remove sensitive data from response
+            const { password: _, refreshToken: __, ...userProfile } = user as any;
+
+            res.json({
+                message: 'Perfil atualizado com sucesso',
+                user: userProfile
+            });
+        } catch (error) {
+            console.error('Update profile error:', error);
+            res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+
+    /**
      * Get authenticated user profile photo
      */
     static async getProfilePhoto(req: Request, res: Response) {

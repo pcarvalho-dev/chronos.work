@@ -5,6 +5,7 @@ import { loginSchema } from '../schemas/loginSchema.js';
 import { registerSchema } from '../schemas/registerSchema.js';
 import { forgotPasswordSchema, resetPasswordSchema } from '../schemas/passwordResetSchema.js';
 import { refreshTokenSchema } from '../schemas/refreshTokenSchema.js';
+import { updateProfileSchema } from '../schemas/updateProfileSchema.js';
 import { UserController } from '../controllers/UserController.js';
 import { upload } from '../config/multer.js';
 
@@ -19,6 +20,8 @@ router.post('/refresh-token', validate(refreshTokenSchema), UserController.refre
 router.post('/logout', isAuthenticated, UserController.logout);
 
 router.get('/profile', isAuthenticated, UserController.getProfile);
+
+router.put('/profile', isAuthenticated, validate(updateProfileSchema), UserController.updateProfile);
 
 router.get('/profile-photo', isAuthenticated, UserController.getProfilePhoto);
 

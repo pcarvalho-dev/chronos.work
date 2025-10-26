@@ -53,7 +53,11 @@
       "Bash(node temp_update_openapi.js:*)",
       "Bash(cat:*)",
       "Bash(node add_profile_photo_endpoint.js:*)",
-      "Bash(node fix_timelog_controller.js:*)"
+      "Bash(node fix_timelog_controller.js:*)",
+      "Bash(npm run check:db:*)",
+      "Bash(timeout 10 npm start)",
+      "Read(//home/pablo/Projetos/chronoswork-front/**)",
+      "Read(//home/pablo/Projetos/chronos_work_mobile/**)"
     ],
     "deny": [],
     "ask": []

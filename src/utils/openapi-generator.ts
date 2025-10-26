@@ -53,6 +53,158 @@ export const ResetPasswordRequestSchema = registry.register(
   })
 );
 
+export const UpdateProfileRequestSchema = registry.register(
+  'UpdateProfileRequest',
+  z.object({
+    // Informações básicas
+    name: z.string().min(3).optional().openapi({
+      description: 'Nome completo do usuário',
+      example: 'Pablo Silva'
+    }),
+    email: z.string().email().optional().openapi({
+      description: 'Email do usuário (deve ser único)',
+      example: 'pablo@email.com'
+    }),
+    // Informações pessoais
+    cpf: z.string().regex(/^\d{11}$/).optional().openapi({
+      description: 'CPF do usuário (11 dígitos)',
+      example: '12345678901'
+    }),
+    rg: z.string().optional().openapi({
+      description: 'RG do usuário',
+      example: '123456789'
+    }),
+    birthDate: z.string().date().optional().openapi({
+      description: 'Data de nascimento',
+      example: '1990-05-15'
+    }),
+    gender: z.enum(['Masculino', 'Feminino', 'Outro', 'Prefiro não informar']).optional().openapi({
+      description: 'Gênero do usuário'
+    }),
+    maritalStatus: z.enum(['Solteiro(a)', 'Casado(a)', 'Divorciado(a)', 'Viúvo(a)', 'União Estável']).optional().openapi({
+      description: 'Estado civil'
+    }),
+    phone: z.string().optional().openapi({
+      description: 'Telefone fixo',
+      example: '(11) 1234-5678'
+    }),
+    mobilePhone: z.string().optional().openapi({
+      description: 'Telefone celular',
+      example: '(11) 91234-5678'
+    }),
+    // Endereço
+    address: z.string().optional().openapi({
+      description: 'Logradouro',
+      example: 'Rua das Flores'
+    }),
+    addressNumber: z.string().optional().openapi({
+      description: 'Número do endereço',
+      example: '123'
+    }),
+    addressComplement: z.string().optional().openapi({
+      description: 'Complemento do endereço',
+      example: 'Apto 45'
+    }),
+    neighborhood: z.string().optional().openapi({
+      description: 'Bairro',
+      example: 'Centro'
+    }),
+    city: z.string().optional().openapi({
+      description: 'Cidade',
+      example: 'São Paulo'
+    }),
+    state: z.string().length(2).optional().openapi({
+      description: 'Estado (UF)',
+      example: 'SP'
+    }),
+    zipCode: z.string().regex(/^\d{8}$/).optional().openapi({
+      description: 'CEP (8 dígitos)',
+      example: '01234567'
+    }),
+    country: z.string().optional().openapi({
+      description: 'País',
+      example: 'Brasil'
+    }),
+    // Informações profissionais
+    employeeId: z.string().optional().openapi({
+      description: 'Matrícula do funcionário',
+      example: 'EMP001'
+    }),
+    department: z.string().optional().openapi({
+      description: 'Departamento',
+      example: 'TI'
+    }),
+    position: z.string().optional().openapi({
+      description: 'Cargo',
+      example: 'Desenvolvedor Full Stack'
+    }),
+    hireDate: z.string().date().optional().openapi({
+      description: 'Data de contratação',
+      example: '2024-01-15'
+    }),
+    salary: z.number().positive().optional().openapi({
+      description: 'Salário',
+      example: 5000.00
+    }),
+    workSchedule: z.string().optional().openapi({
+      description: 'Jornada de trabalho',
+      example: 'Segunda a Sexta, 9h às 18h'
+    }),
+    employmentType: z.enum(['CLT', 'PJ', 'Estagiário', 'Freelancer', 'Temporário', 'Autônomo']).optional().openapi({
+      description: 'Tipo de contrato'
+    }),
+    directSupervisor: z.string().optional().openapi({
+      description: 'Supervisor direto',
+      example: 'João Santos'
+    }),
+    // Informações bancárias
+    bankName: z.string().optional().openapi({
+      description: 'Nome do banco',
+      example: 'Banco do Brasil'
+    }),
+    bankAccount: z.string().optional().openapi({
+      description: 'Número da conta',
+      example: '12345-6'
+    }),
+    bankAgency: z.string().optional().openapi({
+      description: 'Agência bancária',
+      example: '1234'
+    }),
+    bankAccountType: z.enum(['Corrente', 'Poupança', 'Salário']).optional().openapi({
+      description: 'Tipo de conta bancária'
+    }),
+    pix: z.string().optional().openapi({
+      description: 'Chave PIX',
+      example: 'pablo@email.com'
+    }),
+    // Informações de emergência
+    emergencyContactName: z.string().optional().openapi({
+      description: 'Nome do contato de emergência',
+      example: 'Maria Silva'
+    }),
+    emergencyContactPhone: z.string().optional().openapi({
+      description: 'Telefone do contato de emergência',
+      example: '(11) 98765-4321'
+    }),
+    emergencyContactRelationship: z.string().optional().openapi({
+      description: 'Grau de parentesco do contato de emergência',
+      example: 'Mãe'
+    }),
+    // Informações adicionais
+    education: z.enum(['Fundamental', 'Médio', 'Superior', 'Pós-graduação', 'Mestrado', 'Doutorado']).optional().openapi({
+      description: 'Nível de escolaridade'
+    }),
+    notes: z.string().optional().openapi({
+      description: 'Observações adicionais',
+      example: 'Funcionário exemplar'
+    }),
+    isActive: z.boolean().optional().openapi({
+      description: 'Status do usuário',
+      example: true
+    })
+  })
+);
+
 export const RegisterRequestSchema = registry.register(
   'RegisterRequest',
   z.object({
@@ -293,6 +445,26 @@ const TimeLogSchema = registry.register(
     checkOutLocation: z.string().nullable().openapi({
       description: 'Endereço completo do check-out obtido via geocoding reverso',
       example: 'Avenida Paulista, 1578, Bela Vista, São Paulo, Brasil'
+    }),
+    isManual: z.boolean().openapi({
+      description: 'Indica se é um lançamento manual',
+      example: false
+    }),
+    reason: z.string().nullable().openapi({
+      description: 'Motivo do lançamento manual',
+      example: 'Esqueci de bater o ponto'
+    }),
+    status: z.enum(['pending_approval', 'approved', 'rejected']).openapi({
+      description: 'Status do lançamento: pending_approval (aguardando), approved (aprovado), rejected (rejeitado)',
+      example: 'approved'
+    }),
+    approvalDate: z.string().datetime().nullable().openapi({
+      description: 'Data de aprovação ou rejeição',
+      example: '2025-10-23T10:00:00.000Z'
+    }),
+    rejectionReason: z.string().nullable().openapi({
+      description: 'Motivo da rejeição (se rejeitado)',
+      example: null
     })
   })
 );
@@ -379,11 +551,117 @@ const ProfileResponseSchema = z.object({
   user: UserSchema
 });
 
+const UpdateProfileResponseSchema = z.object({
+  message: z.string().openapi({ example: 'Perfil atualizado com sucesso' }),
+  user: UserSchema
+});
+
 const ProfilePhotoResponseSchema = z.object({
   profilePhoto: z.string().nullable().openapi({
     example: '/uploads/profiles/abc123.jpg',
     description: 'URL da foto de perfil do usuário'
   })
+});
+
+// Manual time log schemas
+const ManualCheckInRequestSchema = registry.register(
+  'ManualCheckInRequest',
+  z.object({
+    checkIn: z.string().datetime().openapi({
+      description: 'Data e hora de entrada (formato ISO 8601)',
+      example: '2025-10-22T08:00:00.000Z'
+    }),
+    reason: z.string().min(10).openapi({
+      description: 'Motivo do lançamento manual (mínimo 10 caracteres)',
+      example: 'Esqueci de bater o ponto ao chegar no trabalho'
+    }),
+    checkInLocation: z.string().optional().openapi({
+      description: 'Endereço do check-in (opcional)',
+      example: 'Escritório Central'
+    }),
+    latitude: z.number().min(-90).max(90).optional().openapi({
+      description: 'Latitude (opcional)',
+      example: -23.5505199
+    }),
+    longitude: z.number().min(-180).max(180).optional().openapi({
+      description: 'Longitude (opcional)',
+      example: -46.6333094
+    })
+  })
+);
+
+const ManualCheckOutRequestSchema = registry.register(
+  'ManualCheckOutRequest',
+  z.object({
+    timeLogId: z.number().int().openapi({
+      description: 'ID do registro de ponto',
+      example: 1
+    }),
+    checkOut: z.string().datetime().openapi({
+      description: 'Data e hora de saída (formato ISO 8601)',
+      example: '2025-10-22T17:00:00.000Z'
+    }),
+    reason: z.string().min(10).openapi({
+      description: 'Motivo do lançamento manual (mínimo 10 caracteres)',
+      example: 'Esqueci de bater o ponto ao sair do trabalho'
+    }),
+    checkOutLocation: z.string().optional().openapi({
+      description: 'Endereço do check-out (opcional)',
+      example: 'Escritório Central'
+    }),
+    outLatitude: z.number().min(-90).max(90).optional().openapi({
+      description: 'Latitude (opcional)',
+      example: -23.5505199
+    }),
+    outLongitude: z.number().min(-180).max(180).optional().openapi({
+      description: 'Longitude (opcional)',
+      example: -46.6333094
+    })
+  })
+);
+
+const ApproveTimeLogRequestSchema = registry.register(
+  'ApproveTimeLogRequest',
+  z.object({
+    timeLogId: z.number().int().openapi({
+      description: 'ID do registro de ponto a ser aprovado',
+      example: 1
+    })
+  })
+);
+
+const RejectTimeLogRequestSchema = registry.register(
+  'RejectTimeLogRequest',
+  z.object({
+    timeLogId: z.number().int().openapi({
+      description: 'ID do registro de ponto a ser rejeitado',
+      example: 1
+    }),
+    rejectionReason: z.string().min(10).openapi({
+      description: 'Motivo da rejeição (mínimo 10 caracteres)',
+      example: 'Horário informado não corresponde ao expediente'
+    })
+  })
+);
+
+const ManualCheckInResponseSchema = z.object({
+  message: z.string().openapi({ example: 'Lançamento manual de check-in criado. Aguardando aprovação.' }),
+  checkIn: TimeLogSchema
+});
+
+const ManualCheckOutResponseSchema = z.object({
+  message: z.string().openapi({ example: 'Lançamento manual de check-out criado. Aguardando aprovação.' }),
+  timeLog: TimeLogSchema
+});
+
+const ApproveTimeLogResponseSchema = z.object({
+  message: z.string().openapi({ example: 'Lançamento manual aprovado com sucesso' }),
+  timeLog: TimeLogSchema
+});
+
+const RejectTimeLogResponseSchema = z.object({
+  message: z.string().openapi({ example: 'Lançamento manual rejeitado' }),
+  timeLog: TimeLogSchema
 });
 
 const ErrorResponseSchema = registry.register(
@@ -576,6 +854,58 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: ProfileResponseSchema
+        }
+      }
+    },
+    401: {
+      description: 'Não autenticado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    500: {
+      description: 'Erro interno do servidor',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'put',
+  path: '/auth/profile',
+  tags: ['Authentication'],
+  summary: 'Atualizar perfil do usuário',
+  description: 'Atualiza as informações do perfil do usuário autenticado. Todos os campos são opcionais - envie apenas os campos que deseja atualizar.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateProfileRequestSchema
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Perfil atualizado com sucesso',
+      content: {
+        'application/json': {
+          schema: UpdateProfileResponseSchema
+        }
+      }
+    },
+    400: {
+      description: 'Email já está em uso ou erro de validação',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
         }
       }
     },
@@ -935,11 +1265,291 @@ registry.registerPath({
   path: '/timelog',
   tags: ['Time Tracking'],
   summary: 'Listar registros de tempo',
-  description: 'Retorna todos os registros de ponto do usuário autenticado, incluindo fotos, coordenadas geográficas e endereços completos de cada check-in e check-out. Ordenados por data de entrada (mais recentes primeiro).',
+  description: 'Retorna todos os registros de ponto do usuário autenticado, incluindo fotos, coordenadas geográficas e endereços completos de cada check-in e check-out. Ordenados por data de entrada (mais recentes primeiro). Suporta filtros opcionais por data.',
   security: [{ bearerAuth: [] }],
+  request: {
+    query: z.object({
+      startDate: z.string().date().optional().openapi({
+        description: 'Data inicial para filtrar os registros (formato: YYYY-MM-DD). Retorna registros a partir desta data (inclusive).',
+        example: '2025-10-01'
+      }),
+      endDate: z.string().date().optional().openapi({
+        description: 'Data final para filtrar os registros (formato: YYYY-MM-DD). Retorna registros até esta data (inclusive).',
+        example: '2025-10-26'
+      })
+    })
+  },
   responses: {
     200: {
       description: 'Lista de registros retornada com sucesso',
+      content: {
+        'application/json': {
+          schema: z.array(TimeLogSchema)
+        }
+      }
+    },
+    401: {
+      description: 'Não autenticado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    500: {
+      description: 'Erro interno do servidor',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+// Manual time log endpoints
+registry.registerPath({
+  method: 'post',
+  path: '/timelog/manual-checkin',
+  tags: ['Time Tracking'],
+  summary: 'Lançar check-in manualmente (retroativo)',
+  description: 'Cria um lançamento manual de check-in retroativo. O registro ficará com status "pending_approval" até que um gestor aprove.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: ManualCheckInRequestSchema
+        }
+      }
+    }
+  },
+  responses: {
+    201: {
+      description: 'Lançamento manual criado com sucesso',
+      content: {
+        'application/json': {
+          schema: ManualCheckInResponseSchema
+        }
+      }
+    },
+    400: {
+      description: 'Erro de validação ou usuário já possui check-in ativo',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    401: {
+      description: 'Não autenticado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    500: {
+      description: 'Erro interno do servidor',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/timelog/manual-checkout',
+  tags: ['Time Tracking'],
+  summary: 'Lançar check-out manualmente (retroativo)',
+  description: 'Adiciona um check-out manual a um registro de ponto existente. O registro ficará com status "pending_approval" até que um gestor aprove.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: ManualCheckOutRequestSchema
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Check-out manual adicionado com sucesso',
+      content: {
+        'application/json': {
+          schema: ManualCheckOutResponseSchema
+        }
+      }
+    },
+    400: {
+      description: 'Registro não encontrado, erro de validação, ou registro já possui check-out',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    401: {
+      description: 'Não autenticado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    404: {
+      description: 'Registro de ponto não encontrado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    500: {
+      description: 'Erro interno do servidor',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/timelog/approve',
+  tags: ['Time Tracking'],
+  summary: 'Aprovar lançamento manual (gestor)',
+  description: 'Aprova um lançamento manual de ponto. Requer permissões de gestor.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: ApproveTimeLogRequestSchema
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Lançamento aprovado com sucesso',
+      content: {
+        'application/json': {
+          schema: ApproveTimeLogResponseSchema
+        }
+      }
+    },
+    400: {
+      description: 'Erro de validação, registro não é manual, ou já foi processado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    401: {
+      description: 'Não autenticado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    404: {
+      description: 'Registro de ponto não encontrado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    500: {
+      description: 'Erro interno do servidor',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/timelog/reject',
+  tags: ['Time Tracking'],
+  summary: 'Rejeitar lançamento manual (gestor)',
+  description: 'Rejeita um lançamento manual de ponto com um motivo. Requer permissões de gestor.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: RejectTimeLogRequestSchema
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Lançamento rejeitado',
+      content: {
+        'application/json': {
+          schema: RejectTimeLogResponseSchema
+        }
+      }
+    },
+    400: {
+      description: 'Erro de validação, registro não é manual, ou já foi processado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    401: {
+      description: 'Não autenticado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    404: {
+      description: 'Registro de ponto não encontrado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    500: {
+      description: 'Erro interno do servidor',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/timelog/pending',
+  tags: ['Time Tracking'],
+  summary: 'Listar lançamentos pendentes de aprovação (gestor)',
+  description: 'Retorna todos os lançamentos manuais com status pending_approval. Requer permissões de gestor.',
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Lista de lançamentos pendentes',
       content: {
         'application/json': {
           schema: z.array(TimeLogSchema)
