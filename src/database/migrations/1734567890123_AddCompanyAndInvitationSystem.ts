@@ -61,7 +61,8 @@ export class AddCompanyAndInvitationSystem1734567890123 implements MigrationInte
             ADD COLUMN "isApproved" boolean NOT NULL DEFAULT false,
             ADD COLUMN "invitationCode" character varying,
             ADD COLUMN "companyId" integer,
-            ADD COLUMN "invitationId" integer
+            ADD COLUMN "invitationId" integer,
+            ADD COLUMN "role" character varying NOT NULL DEFAULT 'employee'
         `);
 
         // Update existing users to be approved and active
@@ -165,7 +166,8 @@ export class AddCompanyAndInvitationSystem1734567890123 implements MigrationInte
             DROP COLUMN "invitationId",
             DROP COLUMN "companyId",
             DROP COLUMN "invitationCode",
-            DROP COLUMN "isApproved"
+            DROP COLUMN "isApproved",
+            DROP COLUMN "role"
         `);
 
         // Drop tables
