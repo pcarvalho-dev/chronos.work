@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from "typeorm";
+import type { Company } from "./Company.js";
+import type { Invitation } from "./Invitation.js";
 
 @Entity()
 export class User {
@@ -132,15 +134,41 @@ export class User {
     @Column({ type: 'text', nullable: true })
     notes?: string;
 
-    @Column({ type: 'boolean', default: true })
+    @Column({ type: 'boolean', default: false })
     isActive!: boolean;
+
+    @Column({ type: 'boolean', default: false })
+    isApproved!: boolean;
 
     @Column({ type: 'varchar', default: 'employee' })
     role!: 'manager' | 'employee';
+
+    @Column({ type: 'varchar', nullable: true })
+    invitationCode?: string;
 
     @CreateDateColumn()
     createdAt!: Date;
 
     @UpdateDateColumn()
     updatedAt!: Date;
+
+    // Relacionamento com empresa
+    @ManyToOne('Company', 'users')
+    @JoinColumn({ name: 'companyId' })
+    company?: Company;
+
+    @Column({ type: 'int', nullable: true })
+    companyId?: number;
+
+    // Relacionamento com convites criados (apenas para gestores)
+    @OneToMany('Invitation', 'createdBy')
+    createdInvitations?: Invitation[];
+
+    // Relacionamento com convite usado (apenas para funcionários)
+    @ManyToOne('Invitation', 'usedBy')
+    @JoinColumn({ name: 'invitationId' })
+    invitation?: Invitation;
+
+    @Column({ type: 'int', nullable: true })
+    invitationId?: number;
 }

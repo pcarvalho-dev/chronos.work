@@ -677,49 +677,7 @@ const ErrorResponseSchema = registry.register(
   })
 );
 
-// Register routes
-registry.registerPath({
-  method: 'post',
-  path: '/auth/register',
-  tags: ['Authentication'],
-  summary: 'Registrar novo usuário',
-  description: 'Cria uma nova conta de usuário no sistema',
-  request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: RegisterRequestSchema,
-        }
-      }
-    }
-  },
-  responses: {
-    201: {
-      description: 'Usuário criado com sucesso',
-      content: {
-        'application/json': {
-          schema: RegisterResponseSchema
-        }
-      }
-    },
-    400: {
-      description: 'Erro de validação ou usuário já existe',
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema
-        }
-      }
-    },
-    500: {
-      description: 'Erro interno do servidor',
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema
-        }
-      }
-    }
-  }
-});
+
 
 registry.registerPath({
   method: 'post',
@@ -1576,6 +1534,365 @@ registry.registerPath({
   }
 });
 
+// Company and Invitation schemas
+const CompanySchema = registry.register(
+  'Company',
+  z.object({
+    id: z.number().int().openapi({ example: 1 }),
+    name: z.string().openapi({ example: 'Empresa ABC Ltda' }),
+    cnpj: z.string().openapi({ example: '12345678000195' }),
+    corporateName: z.string().optional().openapi({ example: 'Empresa ABC Ltda' }),
+    email: z.string().email().optional().openapi({ example: 'contato@empresa.com' }),
+    phone: z.string().optional().openapi({ example: '(11) 1234-5678' }),
+    website: z.string().url().optional().openapi({ example: 'https://empresa.com' }),
+    address: z.string().optional().openapi({ example: 'Rua das Flores, 123' }),
+    addressNumber: z.string().optional().openapi({ example: '123' }),
+    addressComplement: z.string().optional().openapi({ example: 'Sala 45' }),
+    neighborhood: z.string().optional().openapi({ example: 'Centro' }),
+    city: z.string().optional().openapi({ example: 'São Paulo' }),
+    state: z.string().optional().openapi({ example: 'SP' }),
+    zipCode: z.string().optional().openapi({ example: '01234567' }),
+    country: z.string().optional().openapi({ example: 'Brasil' }),
+    description: z.string().optional().openapi({ example: 'Empresa de tecnologia' }),
+    logo: z.string().optional().openapi({ example: 'https://cloudinary.com/logo.jpg' }),
+    isActive: z.boolean().openapi({ example: true }),
+    createdAt: z.string().datetime().openapi({ example: '2025-10-23T12:00:00.000Z' }),
+    updatedAt: z.string().datetime().openapi({ example: '2025-10-23T12:00:00.000Z' })
+  })
+);
+
+const InvitationSchema = registry.register(
+  'Invitation',
+  z.object({
+    id: z.number().int().openapi({ example: 1 }),
+    code: z.string().openapi({ example: 'ABC12345' }),
+    email: z.string().email().openapi({ example: 'funcionario@email.com' }),
+    name: z.string().optional().openapi({ example: 'João Silva' }),
+    position: z.string().optional().openapi({ example: 'Desenvolvedor' }),
+    department: z.string().optional().openapi({ example: 'TI' }),
+    isUsed: z.boolean().openapi({ example: false }),
+    usedAt: z.string().datetime().nullable().openapi({ example: null }),
+    expiresAt: z.string().datetime().nullable().openapi({ example: '2025-11-01T12:00:00.000Z' }),
+    isActive: z.boolean().openapi({ example: true }),
+    createdAt: z.string().datetime().openapi({ example: '2025-10-23T12:00:00.000Z' }),
+    updatedAt: z.string().datetime().openapi({ example: '2025-10-23T12:00:00.000Z' })
+  })
+);
+
+const ManagerRegisterRequestSchema = registry.register(
+  'ManagerRegisterRequest',
+  z.object({
+    // Dados do gestor
+    name: z.string().min(3).openapi({
+      description: 'Nome completo do gestor',
+      example: 'Pablo Silva'
+    }),
+    email: z.string().email().openapi({
+      description: 'Email do gestor',
+      example: 'pablo@empresa.com'
+    }),
+    password: z.string().min(6).openapi({
+      description: 'Senha do gestor',
+      example: '123456'
+    }),
+    
+    // Dados da empresa
+    company: z.object({
+      name: z.string().min(2).openapi({
+        description: 'Nome da empresa',
+        example: 'Empresa ABC Ltda'
+      }),
+      cnpj: z.string().regex(/^\d{14}$/).openapi({
+        description: 'CNPJ da empresa (14 dígitos)',
+        example: '12345678000195'
+      }),
+      corporateName: z.string().optional().openapi({
+        description: 'Razão social',
+        example: 'Empresa ABC Ltda'
+      }),
+      email: z.string().email().optional().openapi({
+        description: 'Email da empresa',
+        example: 'contato@empresa.com'
+      }),
+      phone: z.string().optional().openapi({
+        description: 'Telefone da empresa',
+        example: '(11) 1234-5678'
+      }),
+      website: z.string().url().optional().openapi({
+        description: 'Website da empresa',
+        example: 'https://empresa.com'
+      }),
+      address: z.string().optional().openapi({
+        description: 'Endereço da empresa',
+        example: 'Rua das Flores, 123'
+      }),
+      city: z.string().optional().openapi({
+        description: 'Cidade',
+        example: 'São Paulo'
+      }),
+      state: z.string().length(2).optional().openapi({
+        description: 'Estado (UF)',
+        example: 'SP'
+      }),
+      zipCode: z.string().regex(/^\d{8}$/).optional().openapi({
+        description: 'CEP (8 dígitos)',
+        example: '01234567'
+      }),
+      country: z.string().default('Brasil').optional().openapi({
+        description: 'País',
+        example: 'Brasil'
+      }),
+      description: z.string().optional().openapi({
+        description: 'Descrição da empresa',
+        example: 'Empresa de tecnologia'
+      })
+    }),
+    
+    // Informações pessoais do gestor (opcionais)
+    cpf: z.string().regex(/^\d{11}$/).optional().openapi({
+      description: 'CPF do gestor (11 dígitos)',
+      example: '12345678901'
+    }),
+    phone: z.string().optional().openapi({
+      description: 'Telefone do gestor',
+      example: '(11) 91234-5678'
+    })
+  })
+);
+
+const EmployeeRegisterRequestSchema = registry.register(
+  'EmployeeRegisterRequest',
+  z.object({
+    invitationCode: z.string().min(1).openapi({
+      description: 'Código de convite obrigatório',
+      example: 'ABC12345'
+    }),
+    name: z.string().min(3).openapi({
+      description: 'Nome completo do funcionário',
+      example: 'João Silva'
+    }),
+    email: z.string().email().openapi({
+      description: 'Email do funcionário',
+      example: 'joao@email.com'
+    }),
+    password: z.string().min(6).openapi({
+      description: 'Senha do funcionário',
+      example: '123456'
+    }),
+    cpf: z.string().regex(/^\d{11}$/).optional().openapi({
+      description: 'CPF do funcionário (11 dígitos)',
+      example: '12345678901'
+    }),
+    phone: z.string().optional().openapi({
+      description: 'Telefone do funcionário',
+      example: '(11) 91234-5678'
+    }),
+    department: z.string().optional().openapi({
+      description: 'Departamento',
+      example: 'TI'
+    }),
+    position: z.string().optional().openapi({
+      description: 'Cargo',
+      example: 'Desenvolvedor'
+    })
+  })
+);
+
+const CreateInvitationRequestSchema = registry.register(
+  'CreateInvitationRequest',
+  z.object({
+    email: z.string().email().openapi({
+      description: 'Email do funcionário a ser convidado',
+      example: 'funcionario@email.com'
+    }),
+    name: z.string().min(2).optional().openapi({
+      description: 'Nome do funcionário',
+      example: 'João Silva'
+    }),
+    position: z.string().optional().openapi({
+      description: 'Cargo do funcionário',
+      example: 'Desenvolvedor'
+    }),
+    department: z.string().optional().openapi({
+      description: 'Departamento do funcionário',
+      example: 'TI'
+    }),
+    expiresAt: z.string().datetime().optional().openapi({
+      description: 'Data de expiração do convite (padrão: 7 dias)',
+      example: '2025-11-01T12:00:00.000Z'
+    })
+  })
+);
+
+const ApproveEmployeeRequestSchema = registry.register(
+  'ApproveEmployeeRequest',
+  z.object({
+    userId: z.number().int().positive().openapi({
+      description: 'ID do usuário funcionário',
+      example: 1
+    }),
+    approved: z.boolean().openapi({
+      description: 'Se deve aprovar ou rejeitar',
+      example: true
+    }),
+    notes: z.string().optional().openapi({
+      description: 'Observações sobre a aprovação/rejeição',
+      example: 'Funcionário aprovado com sucesso'
+    })
+  })
+);
+
+// Response schemas
+const ManagerRegisterResponseSchema = z.object({
+  message: z.string().openapi({ example: 'Gestor e empresa criados com sucesso' }),
+  user: UserSchema,
+  company: CompanySchema,
+  accessToken: z.string().openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
+  refreshToken: z.string().openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' })
+});
+
+const EmployeeRegisterResponseSchema = z.object({
+  message: z.string().openapi({ example: 'Cadastro realizado com sucesso. Aguarde aprovação do gestor.' }),
+  user: UserSchema,
+  requiresApproval: z.boolean().openapi({ example: true })
+});
+
+const CreateInvitationResponseSchema = z.object({
+  message: z.string().openapi({ example: 'Convite criado com sucesso' }),
+  invitation: InvitationSchema
+});
+
+const InvitationListResponseSchema = z.object({
+  invitations: z.array(InvitationSchema),
+  pagination: z.object({
+    page: z.number(),
+    limit: z.number(),
+    total: z.number(),
+    pages: z.number()
+  })
+});
+
+const EmployeeListResponseSchema = z.object({
+  employees: z.array(UserSchema),
+  pagination: z.object({
+    page: z.number(),
+    limit: z.number(),
+    total: z.number(),
+    pages: z.number()
+  })
+});
+
+const ApproveEmployeeResponseSchema = z.object({
+  message: z.string().openapi({ example: 'Funcionário aprovado com sucesso' }),
+  employee: z.object({
+    id: z.number(),
+    name: z.string(),
+    email: z.string(),
+    isApproved: z.boolean(),
+    isActive: z.boolean()
+  })
+});
+
+const CompanyResponseSchema = z.object({
+  company: CompanySchema
+});
+
+const UpdateCompanyResponseSchema = z.object({
+  message: z.string().openapi({ example: 'Empresa atualizada com sucesso' }),
+  company: CompanySchema
+});
+
+const CancelInvitationResponseSchema = z.object({
+  message: z.string().openapi({ example: 'Convite cancelado com sucesso' })
+});
+
+// Register new authentication routes
+registry.registerPath({
+  method: 'post',
+  path: '/auth/register-manager',
+  tags: ['Authentication'],
+  summary: 'Registrar gestor e criar empresa',
+  description: 'Cria uma nova empresa e registra o gestor responsável. O gestor é automaticamente aprovado e ativado.',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: ManagerRegisterRequestSchema,
+        }
+      }
+    }
+  },
+  responses: {
+    201: {
+      description: 'Gestor e empresa criados com sucesso',
+      content: {
+        'application/json': {
+          schema: ManagerRegisterResponseSchema
+        }
+      }
+    },
+    400: {
+      description: 'Email ou CNPJ já existe, ou erro de validação',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    500: {
+      description: 'Erro interno do servidor',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/auth/register-employee',
+  tags: ['Authentication'],
+  summary: 'Registrar funcionário com código de convite',
+  description: 'Cria uma nova conta de funcionário usando um código de convite válido. O funcionário ficará inativo até aprovação do gestor.',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: EmployeeRegisterRequestSchema,
+        }
+      }
+    }
+  },
+  responses: {
+    201: {
+      description: 'Funcionário registrado com sucesso. Aguardando aprovação.',
+      content: {
+        'application/json': {
+          schema: EmployeeRegisterResponseSchema
+        }
+      }
+    },
+    400: {
+      description: 'Código de convite inválido, email já existe, ou erro de validação',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    500: {
+      description: 'Erro interno do servidor',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
 // Manager schemas
 const ListUsersRequestSchema = registry.register(
   'ListUsersRequest',
@@ -2180,6 +2497,330 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: TimeLogReportResponseSchema
+        }
+      }
+    }
+  }
+});
+
+// Company and Invitation Management endpoints
+registry.registerPath({
+  method: 'get',
+  path: '/manager/company',
+  tags: ['Manager'],
+  summary: 'Obter informações da empresa',
+  description: 'Retorna as informações da empresa do gestor autenticado.',
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Informações da empresa retornadas com sucesso',
+      content: {
+        'application/json': {
+          schema: CompanyResponseSchema
+        }
+      }
+    },
+    404: {
+      description: 'Empresa não encontrada',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'put',
+  path: '/manager/company',
+  tags: ['Manager'],
+  summary: 'Atualizar informações da empresa',
+  description: 'Atualiza as informações da empresa do gestor autenticado.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            name: z.string().min(2).optional(),
+            cnpj: z.string().regex(/^\d{14}$/).optional(),
+            corporateName: z.string().optional(),
+            email: z.string().email().optional(),
+            phone: z.string().optional(),
+            website: z.string().url().optional(),
+            address: z.string().optional(),
+            city: z.string().optional(),
+            state: z.string().length(2).optional(),
+            zipCode: z.string().regex(/^\d{8}$/).optional(),
+            country: z.string().optional(),
+            description: z.string().optional()
+          })
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Empresa atualizada com sucesso',
+      content: {
+        'application/json': {
+          schema: UpdateCompanyResponseSchema
+        }
+      }
+    },
+    400: {
+      description: 'CNPJ já está em uso ou erro de validação',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/manager/invitations',
+  tags: ['Manager'],
+  summary: 'Criar convite para funcionário',
+  description: 'Cria um convite para um funcionário se juntar à empresa.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: CreateInvitationRequestSchema
+        }
+      }
+    }
+  },
+  responses: {
+    201: {
+      description: 'Convite criado com sucesso',
+      content: {
+        'application/json': {
+          schema: CreateInvitationResponseSchema
+        }
+      }
+    },
+    400: {
+      description: 'Usuário já existe, convite já existe, ou erro de validação',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/manager/invitations',
+  tags: ['Manager'],
+  summary: 'Listar convites da empresa',
+  description: 'Lista todos os convites da empresa com filtros e paginação.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: z.object({
+      page: z.string().optional().openapi({
+        description: 'Número da página (padrão: 1)',
+        example: '1'
+      }),
+      limit: z.string().optional().openapi({
+        description: 'Itens por página (padrão: 10)',
+        example: '10'
+      }),
+      status: z.enum(['used', 'active', 'expired']).optional().openapi({
+        description: 'Filtrar por status do convite'
+      })
+    })
+  },
+  responses: {
+    200: {
+      description: 'Lista de convites retornada com sucesso',
+      content: {
+        'application/json': {
+          schema: InvitationListResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'delete',
+  path: '/manager/invitations/{invitationId}',
+  tags: ['Manager'],
+  summary: 'Cancelar convite',
+  description: 'Cancela um convite ativo.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      invitationId: z.string().openapi({
+        description: 'ID do convite',
+        example: '1'
+      })
+    })
+  },
+  responses: {
+    200: {
+      description: 'Convite cancelado com sucesso',
+      content: {
+        'application/json': {
+          schema: CancelInvitationResponseSchema
+        }
+      }
+    },
+    400: {
+      description: 'Convite já foi utilizado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    404: {
+      description: 'Convite não encontrado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/manager/employees',
+  tags: ['Manager'],
+  summary: 'Listar funcionários da empresa',
+  description: 'Lista todos os funcionários da empresa com filtros e paginação.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: z.object({
+      page: z.string().optional().openapi({
+        description: 'Número da página (padrão: 1)',
+        example: '1'
+      }),
+      limit: z.string().optional().openapi({
+        description: 'Itens por página (padrão: 10)',
+        example: '10'
+      }),
+      status: z.enum(['approved', 'pending', 'active', 'inactive']).optional().openapi({
+        description: 'Filtrar por status do funcionário'
+      }),
+      search: z.string().optional().openapi({
+        description: 'Buscar por nome ou email',
+        example: 'João'
+      })
+    })
+  },
+  responses: {
+    200: {
+      description: 'Lista de funcionários retornada com sucesso',
+      content: {
+        'application/json': {
+          schema: z.object({
+            employees: z.array(UserSchema),
+            pagination: z.object({
+              page: z.number(),
+              limit: z.number(),
+              total: z.number(),
+              pages: z.number()
+            })
+          })
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/manager/employees/pending',
+  tags: ['Manager'],
+  summary: 'Listar funcionários pendentes de aprovação',
+  description: 'Lista funcionários que aguardam aprovação do gestor.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: z.object({
+      page: z.string().optional().openapi({
+        description: 'Número da página (padrão: 1)',
+        example: '1'
+      }),
+      limit: z.string().optional().openapi({
+        description: 'Itens por página (padrão: 10)',
+        example: '10'
+      }),
+      search: z.string().optional().openapi({
+        description: 'Buscar por nome ou email',
+        example: 'João'
+      })
+    })
+  },
+  responses: {
+    200: {
+      description: 'Lista de funcionários pendentes retornada com sucesso',
+      content: {
+        'application/json': {
+          schema: z.object({
+            employees: z.array(UserSchema),
+            pagination: z.object({
+              page: z.number(),
+              limit: z.number(),
+              total: z.number(),
+              pages: z.number()
+            })
+          })
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/manager/employees/approve',
+  tags: ['Manager'],
+  summary: 'Aprovar ou rejeitar funcionário',
+  description: 'Aprova ou rejeita um funcionário pendente.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: ApproveEmployeeRequestSchema
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Funcionário processado com sucesso',
+      content: {
+        'application/json': {
+          schema: z.object({
+            message: z.string().openapi({ example: 'Funcionário aprovado com sucesso' }),
+            employee: z.object({
+              id: z.number(),
+              name: z.string(),
+              email: z.string(),
+              isApproved: z.boolean(),
+              isActive: z.boolean()
+            })
+          })
+        }
+      }
+    },
+    404: {
+      description: 'Funcionário não encontrado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
         }
       }
     }

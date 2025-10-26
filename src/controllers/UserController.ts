@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { AppDataSource } from '../database/data-source.js';
 import { User } from '../models/User.js';
+import { Invitation } from '../models/Invitation.js';
 import emailService from '../services/emailService.js';
 import { JwtService } from '../services/jwtService.js';
 
@@ -18,13 +19,22 @@ export class UserController {
             const user = await userRepository.findOne({ where: { email } });
 
             if (!user) {
-                return res.status(401).json({ message: 'Invalid credentials' });
+                return res.status(401).json({ message: 'Credenciais inválidas' });
             }
 
             const isPasswordValid = await bcrypt.compare(password, user.password);
 
             if (!isPasswordValid) {
-                return res.status(401).json({ message: 'Invalid credentials' });
+                return res.status(401).json({ message: 'Credenciais inválidas' });
+            }
+
+            // Check if user is active and approved
+            if (!user.isActive) {
+                return res.status(403).json({ message: 'Conta desativada' });
+            }
+
+            if (user.role === 'employee' && !user.isApproved) {
+                return res.status(403).json({ message: 'Conta aguardando aprovação do gestor' });
             }
 
             // Generate tokens
@@ -50,22 +60,48 @@ export class UserController {
     }
 
     /**
-     * Handle user registration
+     * Handle employee registration with invitation code
      */
-    static async register(req: Request, res: Response) {
-        const { password, ...userData } = req.body;
+    static async registerEmployee(req: Request, res: Response) {
+        const { invitationCode, password, ...userData } = req.body;
 
         try {
             const userRepository = AppDataSource.getRepository(User);
-            const existingUser = await userRepository.findOne({ where: { email: userData.email } });
+            const invitationRepository = AppDataSource.getRepository(Invitation);
 
+            // Check if user already exists
+            const existingUser = await userRepository.findOne({ where: { email: userData.email } });
             if (existingUser) {
-                return res.status(400).json({ message: 'User already exists' });
+                return res.status(400).json({ message: 'Usuário com este email já existe' });
+            }
+
+            // Validate invitation code
+            const invitation = await invitationRepository.findOne({
+                where: { 
+                    code: invitationCode,
+                    isActive: true,
+                    isUsed: false
+                },
+                relations: ['company']
+            });
+
+            if (!invitation) {
+                return res.status(400).json({ message: 'Código de convite inválido ou expirado' });
+            }
+
+            // Check if invitation is expired
+            if (invitation.expiresAt && invitation.expiresAt < new Date()) {
+                return res.status(400).json({ message: 'Código de convite expirado' });
+            }
+
+            // Check if invitation email matches
+            if (invitation.email !== userData.email) {
+                return res.status(400).json({ message: 'Email não corresponde ao convite' });
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
 
-            // ... (processedData fica igual)
+            // Process date fields
             const processedData: any = { ...userData };
             if (processedData.birthDate) {
                 processedData.birthDate = new Date(processedData.birthDate);
@@ -74,31 +110,59 @@ export class UserController {
                 processedData.hireDate = new Date(processedData.hireDate);
             }
 
-            const newUser = await userRepository.save({
-                ...processedData,
-                password: hashedPassword,
-            });
+            // Start transaction
+            const queryRunner = AppDataSource.createQueryRunner();
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
 
-            const { accessToken, refreshToken } = JwtService.generateTokens(newUser.id, newUser.email);
+            try {
+                // Create employee user
+                const newEmployee = queryRunner.manager.create(User, {
+                    ...processedData,
+                    password: hashedPassword,
+                    role: 'employee',
+                    companyId: invitation.companyId,
+                    invitationId: invitation.id,
+                    invitationCode: invitationCode,
+                    isActive: false, // Needs approval
+                    isApproved: false,
+                });
 
-            newUser.refreshToken = refreshToken;
-            await userRepository.save(newUser);
+                const savedEmployee = await queryRunner.manager.save(User, newEmployee);
 
-            emailService.sendWelcomeEmail(newUser.email, newUser.name).catch(err => {
-                console.error('Error sending welcome email:', err);
-            });
+                // Mark invitation as used
+                invitation.isUsed = true;
+                invitation.usedAt = new Date();
+                invitation.usedById = savedEmployee.id;
+                await queryRunner.manager.save(Invitation, invitation);
 
-            const { password: _, refreshToken: __, ...userResponse } = newUser as any;
+                // Commit transaction
+                await queryRunner.commitTransaction();
 
-            res.status(201).json({
-                message: 'User created successfully',
-                user: userResponse,
-                accessToken,
-                refreshToken
-            });
+                // Send registration confirmation email
+                emailService.sendRegistrationConfirmationEmail(savedEmployee.email, savedEmployee.name).catch(err => {
+                    console.error('Error sending registration confirmation email:', err);
+                });
+
+                // Remove sensitive data from response
+                const { password: _, refreshToken: __, ...userResponse } = savedEmployee as any;
+
+                res.status(201).json({
+                    message: 'Cadastro realizado com sucesso. Aguarde aprovação do gestor.',
+                    user: userResponse,
+                    requiresApproval: true
+                });
+
+            } catch (error) {
+                await queryRunner.rollbackTransaction();
+                throw error;
+            } finally {
+                await queryRunner.release();
+            }
+
         } catch (error) {
-            console.error('Registration error:', error);
-            res.status(500).json({ message: 'Internal server error' });
+            console.error('Employee registration error:', error);
+            res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
 

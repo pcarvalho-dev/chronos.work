@@ -1,6 +1,5 @@
 import { DataSource } from "typeorm";
-import { User } from "../models/User.js";
-import { UserCheckIn } from "../models/UserCheckIn.js";
+import { User, UserCheckIn, Company, Invitation } from "../models/index.js";
 import "reflect-metadata";
 import "dotenv/config";
 import dotenv from 'dotenv';
@@ -63,7 +62,7 @@ export const AppDataSource = new DataSource(
             },
             synchronize: false,
             logging: true, // Enable logging to debug connection issues
-            entities: [User, UserCheckIn],
+            entities: [User, UserCheckIn, Company, Invitation],
             migrations: migrationPaths,
             subscribers: [],
         }
@@ -86,7 +85,7 @@ export const AppDataSource = new DataSource(
             } : false,
             synchronize: false,
             logging: false,
-            entities: [User, UserCheckIn],
+            entities: [User, UserCheckIn, Company, Invitation],
             migrations: migrationPaths,
             subscribers: [],
         }

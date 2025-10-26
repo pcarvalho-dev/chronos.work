@@ -426,7 +426,7 @@ export class ManagerController {
             const companyRepository = AppDataSource.getRepository(Company);
             
             const company = await companyRepository.findOne({
-                where: { id: manager.companyId! }
+                where: { id: manager.companyId }
             });
 
             if (!company) {
@@ -452,7 +452,7 @@ export class ManagerController {
             const companyRepository = AppDataSource.getRepository(Company);
             
             const company = await companyRepository.findOne({
-                where: { id: manager.companyId! }
+                where: { id: manager.companyId }
             });
 
             if (!company) {

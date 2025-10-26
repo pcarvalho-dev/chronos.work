@@ -1,37 +1,29 @@
 import { Router } from 'express';
-import { ManagerController } from '../controllers/ManagerController.js';
-import { isAuthenticated } from '../middlewares/auth.js';
-import { isManager } from '../middlewares/managerAuth.js';
 import { validate } from '../middlewares/validate.js';
-import {
-  listUsersSchema,
-  updateUserSchema,
-  createUserSchema,
-  manualTimeLogSchema,
-  approveTimeLogSchema,
-  timeLogReportSchema,
-  changeUserPasswordSchema
-} from '../schemas/managerSchemas.js';
+import { isAuthenticated, isManager } from '../middlewares/auth.js';
+import { createInvitationSchema, updateInvitationSchema, invitationCodeSchema } from '../schemas/invitationSchema.js';
+import { approveEmployeeSchema, employeeApprovalListSchema } from '../schemas/approvalSchema.js';
+import { createCompanySchema, updateCompanySchema } from '../schemas/companySchema.js';
+import { ManagerController } from '../controllers/ManagerController.js';
 
 const router = Router();
 
-// Middleware de autenticação e autorização para todas as rotas
-router.use(isAuthenticated, isManager);
+// All routes require authentication and manager role
+router.use(isAuthenticated);
+router.use(isManager);
 
-// Rotas de gerenciamento de usuários
-router.get('/users', validate(listUsersSchema, 'query'), ManagerController.listUsers);
-router.get('/users/:id', ManagerController.getUserById);
-router.post('/users', validate(createUserSchema), ManagerController.createUser);
-router.put('/users/:id', validate(updateUserSchema), ManagerController.updateUser);
-router.patch('/users/:id/toggle-status', ManagerController.toggleUserStatus);
-router.delete('/users/:id', ManagerController.deleteUser);
-router.post('/users/change-password', validate(changeUserPasswordSchema), ManagerController.changeUserPassword);
+// Company management
+router.get('/company', ManagerController.getCompany);
+router.put('/company', validate(updateCompanySchema), ManagerController.updateCompany);
 
-// Rotas de gerenciamento de pontos
-router.get('/users/:userId/time-logs', ManagerController.getUserTimeLogs);
-router.post('/time-logs/manual', validate(manualTimeLogSchema), ManagerController.createManualTimeLog);
-router.post('/time-logs/approve', validate(approveTimeLogSchema), ManagerController.approveTimeLog);
-router.get('/time-logs/pending', ManagerController.getPendingTimeLogs);
-router.get('/time-logs/report', validate(timeLogReportSchema, 'query'), ManagerController.getTimeLogReport);
+// Invitation management
+router.post('/invitations', validate(createInvitationSchema), ManagerController.createInvitation);
+router.get('/invitations', ManagerController.getInvitations);
+router.delete('/invitations/:invitationId', ManagerController.cancelInvitation);
+
+// Employee management
+router.get('/employees', ManagerController.getEmployees);
+router.get('/employees/pending', ManagerController.getPendingApprovals);
+router.post('/employees/approve', validate(approveEmployeeSchema), ManagerController.approveEmployee);
 
 export default router;
