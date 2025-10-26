@@ -22,6 +22,10 @@
     {
       "name": "Time Tracking",
       "description": "Endpoints de controle de ponto"
+    },
+    {
+      "name": "Manager",
+      "description": "Endpoints de gerenciamento para gestores"
     }
   ],
   "components": {
@@ -694,6 +698,14 @@
             "type": "boolean",
             "example": true
           },
+          "role": {
+            "type": "string",
+            "enum": [
+              "manager",
+              "employee"
+            ],
+            "example": "employee"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -710,6 +722,7 @@
           "name",
           "email",
           "isActive",
+          "role",
           "createdAt",
           "updatedAt"
         ]
@@ -1027,6 +1040,242 @@
         },
         "required": [
           "message"
+        ]
+      },
+      "ListUsersRequest": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "string",
+            "description": "Número da página (padrão: 1)",
+            "example": "1"
+          },
+          "limit": {
+            "type": "string",
+            "description": "Itens por página (padrão: 10)",
+            "example": "10"
+          },
+          "search": {
+            "type": "string",
+            "description": "Buscar por nome, email ou matrícula",
+            "example": "Pablo"
+          },
+          "department": {
+            "type": "string",
+            "description": "Filtrar por departamento",
+            "example": "TI"
+          },
+          "isActive": {
+            "type": "string",
+            "description": "Filtrar por status ativo (true/false)",
+            "example": "true"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "manager",
+              "employee"
+            ],
+            "description": "Filtrar por tipo de usuário"
+          }
+        }
+      },
+      "CreateUserRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "description": "Nome completo do usuário",
+            "example": "João Silva"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email do usuário",
+            "example": "joao@email.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 6,
+            "description": "Senha do usuário",
+            "example": "123456"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "manager",
+              "employee"
+            ],
+            "default": "employee",
+            "description": "Tipo de usuário"
+          },
+          "department": {
+            "type": "string",
+            "description": "Departamento",
+            "example": "TI"
+          },
+          "position": {
+            "type": "string",
+            "description": "Cargo",
+            "example": "Desenvolvedor"
+          },
+          "employeeId": {
+            "type": "string",
+            "description": "Matrícula do funcionário",
+            "example": "EMP002"
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "password"
+        ]
+      },
+      "UpdateUserRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "department": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "manager",
+              "employee"
+            ]
+          }
+        }
+      },
+      "ManualTimeLogRequest": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "description": "ID do usuário",
+            "example": 1
+          },
+          "checkIn": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data e hora de entrada",
+            "example": "2025-10-22T08:00:00.000Z"
+          },
+          "checkOut": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data e hora de saída",
+            "example": "2025-10-22T17:00:00.000Z"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 10,
+            "description": "Motivo do lançamento",
+            "example": "Funcionário esqueceu de bater o ponto"
+          },
+          "checkInLocation": {
+            "type": "string",
+            "description": "Local do check-in",
+            "example": "Escritório Central"
+          },
+          "checkOutLocation": {
+            "type": "string",
+            "description": "Local do check-out",
+            "example": "Escritório Central"
+          }
+        },
+        "required": [
+          "userId",
+          "checkIn",
+          "reason"
+        ]
+      },
+      "TimeLogReportRequest": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "ID do usuário (opcional)",
+            "example": "1"
+          },
+          "department": {
+            "type": "string",
+            "description": "Departamento (opcional)",
+            "example": "TI"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Data inicial",
+            "example": "2025-10-01"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Data final",
+            "example": "2025-10-31"
+          },
+          "page": {
+            "type": "string",
+            "description": "Página",
+            "example": "1"
+          },
+          "limit": {
+            "type": "string",
+            "description": "Itens por página",
+            "example": "50"
+          }
+        },
+        "required": [
+          "startDate",
+          "endDate"
+        ]
+      },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "description": "ID do usuário",
+            "example": 1
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 6,
+            "description": "Nova senha",
+            "example": "novaSenha123"
+          }
+        },
+        "required": [
+          "userId",
+          "newPassword"
+        ]
+      },
+      "ToggleUserStatusRequest": {
+        "type": "object",
+        "properties": {
+          "isActive": {
+            "type": "boolean",
+            "description": "Status do usuário",
+            "example": false
+          }
+        },
+        "required": [
+          "isActive"
         ]
       }
     },
@@ -2372,6 +2621,920 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manager/users": {
+      "get": {
+        "tags": [
+          "Manager"
+        ],
+        "summary": "Listar usuários",
+        "description": "Lista todos os usuários com filtros e paginação. Requer permissões de gestor.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Número da página (padrão: 1)",
+              "example": "1"
+            },
+            "required": false,
+            "description": "Número da página (padrão: 1)",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Itens por página (padrão: 10)",
+              "example": "10"
+            },
+            "required": false,
+            "description": "Itens por página (padrão: 10)",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Buscar por nome, email ou matrícula",
+              "example": "Pablo"
+            },
+            "required": false,
+            "description": "Buscar por nome, email ou matrícula",
+            "name": "search",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Filtrar por departamento",
+              "example": "TI"
+            },
+            "required": false,
+            "description": "Filtrar por departamento",
+            "name": "department",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Filtrar por status ativo (true/false)",
+              "example": "true"
+            },
+            "required": false,
+            "description": "Filtrar por status ativo (true/false)",
+            "name": "isActive",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "manager",
+                "employee"
+              ],
+              "description": "Filtrar por tipo de usuário"
+            },
+            "required": false,
+            "description": "Filtrar por tipo de usuário",
+            "name": "role",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de usuários retornada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "users": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/User"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "number"
+                        },
+                        "limit": {
+                          "type": "number"
+                        },
+                        "total": {
+                          "type": "number"
+                        },
+                        "totalPages": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "page",
+                        "limit",
+                        "total",
+                        "totalPages"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "users",
+                    "pagination"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acesso negado - apenas gestores",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Manager"
+        ],
+        "summary": "Criar usuário",
+        "description": "Cria um novo usuário no sistema. Requer permissões de gestor.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Email já existe ou erro de validação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manager/users/{id}": {
+      "get": {
+        "tags": [
+          "Manager"
+        ],
+        "summary": "Obter usuário por ID",
+        "description": "Retorna os dados de um usuário específico. Requer permissões de gestor.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "ID do usuário",
+              "example": "1"
+            },
+            "required": true,
+            "description": "ID do usuário",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuário retornado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuário não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Manager"
+        ],
+        "summary": "Atualizar usuário",
+        "description": "Atualiza os dados de um usuário. Requer permissões de gestor.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "ID do usuário",
+              "example": "1"
+            },
+            "required": true,
+            "description": "ID do usuário",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuário atualizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuário não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Manager"
+        ],
+        "summary": "Deletar usuário",
+        "description": "Remove um usuário do sistema. Requer permissões de gestor.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "ID do usuário",
+              "example": "1"
+            },
+            "required": true,
+            "description": "ID do usuário",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuário deletado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Não é possível deletar sua própria conta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manager/users/{id}/toggle-status": {
+      "patch": {
+        "tags": [
+          "Manager"
+        ],
+        "summary": "Ativar/Desativar usuário",
+        "description": "Ativa ou desativa um usuário. Requer permissões de gestor.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "ID do usuário",
+              "example": "1"
+            },
+            "required": true,
+            "description": "ID do usuário",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToggleUserStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status do usuário alterado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manager/users/change-password": {
+      "post": {
+        "tags": [
+          "Manager"
+        ],
+        "summary": "Alterar senha de usuário",
+        "description": "Altera a senha de um usuário. Requer permissões de gestor.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Senha alterada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manager/users/{userId}/time-logs": {
+      "get": {
+        "tags": [
+          "Manager"
+        ],
+        "summary": "Listar pontos de usuário",
+        "description": "Lista todos os pontos de um usuário específico. Requer permissões de gestor.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "ID do usuário",
+              "example": "1"
+            },
+            "required": true,
+            "description": "ID do usuário",
+            "name": "userId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "required": false,
+            "name": "startDate",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "required": false,
+            "name": "endDate",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pontos do usuário retornados com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "timeLogs": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TimeLog"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "number"
+                        },
+                        "limit": {
+                          "type": "number"
+                        },
+                        "total": {
+                          "type": "number"
+                        },
+                        "totalPages": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "page",
+                        "limit",
+                        "total",
+                        "totalPages"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "timeLogs",
+                    "pagination"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manager/time-logs/manual": {
+      "post": {
+        "tags": [
+          "Manager"
+        ],
+        "summary": "Lançar ponto manual",
+        "description": "Cria um lançamento manual de ponto para um usuário. Requer permissões de gestor.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualTimeLogRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Ponto lançado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "timeLog": {
+                      "$ref": "#/components/schemas/TimeLog"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "timeLog"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manager/time-logs/approve": {
+      "post": {
+        "tags": [
+          "Manager"
+        ],
+        "summary": "Aprovar/Rejeitar lançamento",
+        "description": "Aprova ou rejeita um lançamento manual pendente. Requer permissões de gestor.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveTimeLogRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lançamento processado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manager/time-logs/pending": {
+      "get": {
+        "tags": [
+          "Manager"
+        ],
+        "summary": "Listar lançamentos pendentes",
+        "description": "Lista todos os lançamentos manuais pendentes de aprovação. Requer permissões de gestor.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lançamentos pendentes retornados com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "timeLogs": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TimeLog"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "number"
+                        },
+                        "limit": {
+                          "type": "number"
+                        },
+                        "total": {
+                          "type": "number"
+                        },
+                        "totalPages": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "page",
+                        "limit",
+                        "total",
+                        "totalPages"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "timeLogs",
+                    "pagination"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manager/time-logs/report": {
+      "get": {
+        "tags": [
+          "Manager"
+        ],
+        "summary": "Relatório de pontos",
+        "description": "Gera relatório de pontos com filtros e estatísticas. Requer permissões de gestor.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "ID do usuário (opcional)",
+              "example": "1"
+            },
+            "required": false,
+            "description": "ID do usuário (opcional)",
+            "name": "userId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Departamento (opcional)",
+              "example": "TI"
+            },
+            "required": false,
+            "description": "Departamento (opcional)",
+            "name": "department",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Data inicial",
+              "example": "2025-10-01"
+            },
+            "required": true,
+            "description": "Data inicial",
+            "name": "startDate",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Data final",
+              "example": "2025-10-31"
+            },
+            "required": true,
+            "description": "Data final",
+            "name": "endDate",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Página",
+              "example": "1"
+            },
+            "required": false,
+            "description": "Página",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Itens por página",
+              "example": "50"
+            },
+            "required": false,
+            "description": "Itens por página",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Relatório gerado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "timeLogs": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TimeLog"
+                      }
+                    },
+                    "stats": {
+                      "type": "object",
+                      "properties": {
+                        "totalTimeLogs": {
+                          "type": "number"
+                        },
+                        "approvedTimeLogs": {
+                          "type": "number"
+                        },
+                        "pendingTimeLogs": {
+                          "type": "number"
+                        },
+                        "rejectedTimeLogs": {
+                          "type": "number"
+                        },
+                        "manualTimeLogs": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "totalTimeLogs",
+                        "approvedTimeLogs",
+                        "pendingTimeLogs",
+                        "rejectedTimeLogs",
+                        "manualTimeLogs"
+                      ]
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "number"
+                        },
+                        "limit": {
+                          "type": "number"
+                        },
+                        "total": {
+                          "type": "number"
+                        },
+                        "totalPages": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "page",
+                        "limit",
+                        "total",
+                        "totalPages"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "timeLogs",
+                    "stats",
+                    "pagination"
+                  ]
                 }
               }
             }

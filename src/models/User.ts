@@ -135,6 +135,9 @@ export class User {
     @Column({ type: 'boolean', default: true })
     isActive!: boolean;
 
+    @Column({ type: 'varchar', default: 'employee' })
+    role!: 'manager' | 'employee';
+
     @CreateDateColumn()
     createdAt!: Date;
 

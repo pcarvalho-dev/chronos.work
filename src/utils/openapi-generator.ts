@@ -397,6 +397,7 @@ const UserSchema = registry.register(
     education: z.string().optional().openapi({ example: 'Superior' }),
     notes: z.string().optional().openapi({ example: 'Funcionário exemplar' }),
     isActive: z.boolean().openapi({ example: true }),
+    role: z.enum(['manager', 'employee']).openapi({ example: 'employee' }),
     createdAt: z.string().datetime().openapi({ example: '2025-10-23T12:00:00.000Z' }),
     updatedAt: z.string().datetime().openapi({ example: '2025-10-23T12:00:00.000Z' })
   })
@@ -1575,6 +1576,616 @@ registry.registerPath({
   }
 });
 
+// Manager schemas
+const ListUsersRequestSchema = registry.register(
+  'ListUsersRequest',
+  z.object({
+    page: z.string().optional().openapi({
+      description: 'Número da página (padrão: 1)',
+      example: '1'
+    }),
+    limit: z.string().optional().openapi({
+      description: 'Itens por página (padrão: 10)',
+      example: '10'
+    }),
+    search: z.string().optional().openapi({
+      description: 'Buscar por nome, email ou matrícula',
+      example: 'Pablo'
+    }),
+    department: z.string().optional().openapi({
+      description: 'Filtrar por departamento',
+      example: 'TI'
+    }),
+    isActive: z.string().optional().openapi({
+      description: 'Filtrar por status ativo (true/false)',
+      example: 'true'
+    }),
+    role: z.enum(['manager', 'employee']).optional().openapi({
+      description: 'Filtrar por tipo de usuário'
+    })
+  })
+);
+
+const CreateUserRequestSchema = registry.register(
+  'CreateUserRequest',
+  z.object({
+    name: z.string().min(2).openapi({
+      description: 'Nome completo do usuário',
+      example: 'João Silva'
+    }),
+    email: z.string().email().openapi({
+      description: 'Email do usuário',
+      example: 'joao@email.com'
+    }),
+    password: z.string().min(6).openapi({
+      description: 'Senha do usuário',
+      example: '123456'
+    }),
+    role: z.enum(['manager', 'employee']).default('employee').openapi({
+      description: 'Tipo de usuário'
+    }),
+    department: z.string().optional().openapi({
+      description: 'Departamento',
+      example: 'TI'
+    }),
+    position: z.string().optional().openapi({
+      description: 'Cargo',
+      example: 'Desenvolvedor'
+    }),
+    employeeId: z.string().optional().openapi({
+      description: 'Matrícula do funcionário',
+      example: 'EMP002'
+    })
+  })
+);
+
+const UpdateUserRequestSchema = registry.register(
+  'UpdateUserRequest',
+  z.object({
+    name: z.string().min(2).optional(),
+    email: z.string().email().optional(),
+    department: z.string().optional(),
+    position: z.string().optional(),
+    isActive: z.boolean().optional(),
+    role: z.enum(['manager', 'employee']).optional()
+  })
+);
+
+const ManualTimeLogRequestSchema = registry.register(
+  'ManualTimeLogRequest',
+  z.object({
+    userId: z.number().int().openapi({
+      description: 'ID do usuário',
+      example: 1
+    }),
+    checkIn: z.string().datetime().openapi({
+      description: 'Data e hora de entrada',
+      example: '2025-10-22T08:00:00.000Z'
+    }),
+    checkOut: z.string().datetime().optional().openapi({
+      description: 'Data e hora de saída',
+      example: '2025-10-22T17:00:00.000Z'
+    }),
+    reason: z.string().min(10).openapi({
+      description: 'Motivo do lançamento',
+      example: 'Funcionário esqueceu de bater o ponto'
+    }),
+    checkInLocation: z.string().optional().openapi({
+      description: 'Local do check-in',
+      example: 'Escritório Central'
+    }),
+    checkOutLocation: z.string().optional().openapi({
+      description: 'Local do check-out',
+      example: 'Escritório Central'
+    })
+  })
+);
+
+
+const TimeLogReportRequestSchema = registry.register(
+  'TimeLogReportRequest',
+  z.object({
+    userId: z.string().optional().openapi({
+      description: 'ID do usuário (opcional)',
+      example: '1'
+    }),
+    department: z.string().optional().openapi({
+      description: 'Departamento (opcional)',
+      example: 'TI'
+    }),
+    startDate: z.string().date().openapi({
+      description: 'Data inicial',
+      example: '2025-10-01'
+    }),
+    endDate: z.string().date().openapi({
+      description: 'Data final',
+      example: '2025-10-31'
+    }),
+    page: z.string().optional().openapi({
+      description: 'Página',
+      example: '1'
+    }),
+    limit: z.string().optional().openapi({
+      description: 'Itens por página',
+      example: '50'
+    })
+  })
+);
+
+const ChangePasswordRequestSchema = registry.register(
+  'ChangePasswordRequest',
+  z.object({
+    userId: z.number().int().openapi({
+      description: 'ID do usuário',
+      example: 1
+    }),
+    newPassword: z.string().min(6).openapi({
+      description: 'Nova senha',
+      example: 'novaSenha123'
+    })
+  })
+);
+
+const ToggleUserStatusRequestSchema = registry.register(
+  'ToggleUserStatusRequest',
+  z.object({
+    isActive: z.boolean().openapi({
+      description: 'Status do usuário',
+      example: false
+    })
+  })
+);
+
+// Response schemas
+const ListUsersResponseSchema = z.object({
+  users: z.array(UserSchema),
+  pagination: z.object({
+    page: z.number(),
+    limit: z.number(),
+    total: z.number(),
+    totalPages: z.number()
+  })
+});
+
+const CreateUserResponseSchema = z.object({
+  message: z.string(),
+  user: UserSchema
+});
+
+const UpdateUserResponseSchema = z.object({
+  message: z.string(),
+  user: UserSchema
+});
+
+const TimeLogReportResponseSchema = z.object({
+  timeLogs: z.array(TimeLogSchema),
+  stats: z.object({
+    totalTimeLogs: z.number(),
+    approvedTimeLogs: z.number(),
+    pendingTimeLogs: z.number(),
+    rejectedTimeLogs: z.number(),
+    manualTimeLogs: z.number()
+  }),
+  pagination: z.object({
+    page: z.number(),
+    limit: z.number(),
+    total: z.number(),
+    totalPages: z.number()
+  })
+});
+
+// Manager routes
+registry.registerPath({
+  method: 'get',
+  path: '/manager/users',
+  tags: ['Manager'],
+  summary: 'Listar usuários',
+  description: 'Lista todos os usuários com filtros e paginação. Requer permissões de gestor.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: ListUsersRequestSchema
+  },
+  responses: {
+    200: {
+      description: 'Lista de usuários retornada com sucesso',
+      content: {
+        'application/json': {
+          schema: ListUsersResponseSchema
+        }
+      }
+    },
+    401: {
+      description: 'Não autenticado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    403: {
+      description: 'Acesso negado - apenas gestores',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/manager/users/{id}',
+  tags: ['Manager'],
+  summary: 'Obter usuário por ID',
+  description: 'Retorna os dados de um usuário específico. Requer permissões de gestor.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.string().openapi({
+        description: 'ID do usuário',
+        example: '1'
+      })
+    })
+  },
+  responses: {
+    200: {
+      description: 'Usuário retornado com sucesso',
+      content: {
+        'application/json': {
+          schema: UserSchema
+        }
+      }
+    },
+    404: {
+      description: 'Usuário não encontrado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/manager/users',
+  tags: ['Manager'],
+  summary: 'Criar usuário',
+  description: 'Cria um novo usuário no sistema. Requer permissões de gestor.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: CreateUserRequestSchema
+        }
+      }
+    }
+  },
+  responses: {
+    201: {
+      description: 'Usuário criado com sucesso',
+      content: {
+        'application/json': {
+          schema: CreateUserResponseSchema
+        }
+      }
+    },
+    400: {
+      description: 'Email já existe ou erro de validação',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'put',
+  path: '/manager/users/{id}',
+  tags: ['Manager'],
+  summary: 'Atualizar usuário',
+  description: 'Atualiza os dados de um usuário. Requer permissões de gestor.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.string().openapi({
+        description: 'ID do usuário',
+        example: '1'
+      })
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateUserRequestSchema
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Usuário atualizado com sucesso',
+      content: {
+        'application/json': {
+          schema: UpdateUserResponseSchema
+        }
+      }
+    },
+    404: {
+      description: 'Usuário não encontrado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/manager/users/{id}/toggle-status',
+  tags: ['Manager'],
+  summary: 'Ativar/Desativar usuário',
+  description: 'Ativa ou desativa um usuário. Requer permissões de gestor.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.string().openapi({
+        description: 'ID do usuário',
+        example: '1'
+      })
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: ToggleUserStatusRequestSchema
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Status do usuário alterado com sucesso',
+      content: {
+        'application/json': {
+          schema: z.object({
+            message: z.string()
+          })
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'delete',
+  path: '/manager/users/{id}',
+  tags: ['Manager'],
+  summary: 'Deletar usuário',
+  description: 'Remove um usuário do sistema. Requer permissões de gestor.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.string().openapi({
+        description: 'ID do usuário',
+        example: '1'
+      })
+    })
+  },
+  responses: {
+    200: {
+      description: 'Usuário deletado com sucesso',
+      content: {
+        'application/json': {
+          schema: z.object({
+            message: z.string()
+          })
+        }
+      }
+    },
+    400: {
+      description: 'Não é possível deletar sua própria conta',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/manager/users/change-password',
+  tags: ['Manager'],
+  summary: 'Alterar senha de usuário',
+  description: 'Altera a senha de um usuário. Requer permissões de gestor.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: ChangePasswordRequestSchema
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Senha alterada com sucesso',
+      content: {
+        'application/json': {
+          schema: z.object({
+            message: z.string()
+          })
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/manager/users/{userId}/time-logs',
+  tags: ['Manager'],
+  summary: 'Listar pontos de usuário',
+  description: 'Lista todos os pontos de um usuário específico. Requer permissões de gestor.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      userId: z.string().openapi({
+        description: 'ID do usuário',
+        example: '1'
+      })
+    }),
+    query: z.object({
+      page: z.string().optional(),
+      limit: z.string().optional(),
+      startDate: z.string().date().optional(),
+      endDate: z.string().date().optional()
+    })
+  },
+  responses: {
+    200: {
+      description: 'Pontos do usuário retornados com sucesso',
+      content: {
+        'application/json': {
+          schema: z.object({
+            timeLogs: z.array(TimeLogSchema),
+            pagination: z.object({
+              page: z.number(),
+              limit: z.number(),
+              total: z.number(),
+              totalPages: z.number()
+            })
+          })
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/manager/time-logs/manual',
+  tags: ['Manager'],
+  summary: 'Lançar ponto manual',
+  description: 'Cria um lançamento manual de ponto para um usuário. Requer permissões de gestor.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: ManualTimeLogRequestSchema
+        }
+      }
+    }
+  },
+  responses: {
+    201: {
+      description: 'Ponto lançado com sucesso',
+      content: {
+        'application/json': {
+          schema: z.object({
+            message: z.string(),
+            timeLog: TimeLogSchema
+          })
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/manager/time-logs/approve',
+  tags: ['Manager'],
+  summary: 'Aprovar/Rejeitar lançamento',
+  description: 'Aprova ou rejeita um lançamento manual pendente. Requer permissões de gestor.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: ApproveTimeLogRequestSchema
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Lançamento processado com sucesso',
+      content: {
+        'application/json': {
+          schema: z.object({
+            message: z.string()
+          })
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/manager/time-logs/pending',
+  tags: ['Manager'],
+  summary: 'Listar lançamentos pendentes',
+  description: 'Lista todos os lançamentos manuais pendentes de aprovação. Requer permissões de gestor.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: z.object({
+      page: z.string().optional(),
+      limit: z.string().optional()
+    })
+  },
+  responses: {
+    200: {
+      description: 'Lançamentos pendentes retornados com sucesso',
+      content: {
+        'application/json': {
+          schema: z.object({
+            timeLogs: z.array(TimeLogSchema),
+            pagination: z.object({
+              page: z.number(),
+              limit: z.number(),
+              total: z.number(),
+              totalPages: z.number()
+            })
+          })
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/manager/time-logs/report',
+  tags: ['Manager'],
+  summary: 'Relatório de pontos',
+  description: 'Gera relatório de pontos com filtros e estatísticas. Requer permissões de gestor.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: TimeLogReportRequestSchema
+  },
+  responses: {
+    200: {
+      description: 'Relatório gerado com sucesso',
+      content: {
+        'application/json': {
+          schema: TimeLogReportResponseSchema
+        }
+      }
+    }
+  }
+});
+
 export function generateOpenApiDocument() {
   const generator = new OpenApiGeneratorV31(registry.definitions);
 
@@ -1602,6 +2213,10 @@ export function generateOpenApiDocument() {
       {
         name: 'Time Tracking',
         description: 'Endpoints de controle de ponto'
+      },
+      {
+        name: 'Manager',
+        description: 'Endpoints de gerenciamento para gestores'
       }
     ]
   });
