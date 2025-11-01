@@ -177,21 +177,39 @@ export class UserController {
         }
 
         try {
-            // Verify refresh token
+            // Verify refresh token JWT signature and expiration
             const payload = JwtService.verifyRefreshToken(refreshToken);
 
             // Get user from database
             const userRepository = AppDataSource.getRepository(User);
             const user = await userRepository.findOne({ where: { id: payload.userId } });
 
-            if (!user || user.refreshToken !== refreshToken) {
-                return res.status(401).json({ message: 'Invalid refresh token' });
+            if (!user) {
+                console.error('Refresh token error: User not found for userId:', payload.userId);
+                return res.status(401).json({ message: 'Invalid or expired refresh token' });
+            }
+
+            // Check if the refresh token matches the one stored in database
+            if (user.refreshToken !== refreshToken) {
+                console.error('Refresh token error: Token mismatch for user:', user.email);
+                console.error('Stored token:', user.refreshToken ? 'exists' : 'null');
+                console.error('Provided token:', refreshToken ? 'exists' : 'null');
+                return res.status(401).json({ message: 'Invalid or expired refresh token' });
+            }
+
+            // Check if user is active and approved
+            if (!user.isActive) {
+                return res.status(403).json({ message: 'Conta desativada' });
+            }
+
+            if (user.role === 'employee' && !user.isApproved) {
+                return res.status(403).json({ message: 'Conta aguardando aprovação do gestor' });
             }
 
             // Generate new tokens
             const tokens = JwtService.generateTokens(user.id, user.email);
 
-            // Update refresh token in database
+            // Update refresh token in database (token rotation)
             user.refreshToken = tokens.refreshToken;
             await userRepository.save(user);
 
@@ -201,6 +219,10 @@ export class UserController {
             });
         } catch (error) {
             console.error('Refresh token error:', error);
+            if (error instanceof Error) {
+                console.error('Error message:', error.message);
+                console.error('Error stack:', error.stack);
+            }
             res.status(401).json({ message: 'Invalid or expired refresh token' });
         }
     }
