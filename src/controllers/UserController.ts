@@ -6,6 +6,7 @@ import { User } from '../models/User.js';
 import { Invitation } from '../models/Invitation.js';
 import emailService from '../services/emailService.js';
 import { JwtService } from '../services/jwtService.js';
+import { trackUserChanges } from '../services/auditService.js';
 
 export class UserController {
     /**
@@ -272,7 +273,7 @@ export class UserController {
         try {
             const user = req.user as User;
             const userRepository = AppDataSource.getRepository(User);
-            const updateData = req.body;
+            const { justification, ...updateData } = req.body;
 
             // If email is being updated, check if it's already in use by another user
             if (updateData.email && updateData.email !== user.email) {
@@ -292,6 +293,20 @@ export class UserController {
             if (updateData.hireDate) {
                 updateData.hireDate = new Date(updateData.hireDate);
             }
+
+            // Create a copy of the old user data for audit tracking
+            const oldUserData = { ...user };
+
+            // Track changes before saving (audit trail)
+            await trackUserChanges(
+                user.id,
+                oldUserData,
+                updateData,
+                user.id, // User is updating their own profile
+                req.ip,
+                req.get('user-agent'),
+                justification
+            );
 
             // Update user fields
             Object.assign(user, updateData);

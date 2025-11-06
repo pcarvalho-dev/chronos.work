@@ -29,6 +29,20 @@ yarn-error.log*
 *.tsbuildinfo
 
 # Test files
-cookies.txt
+cookies*.txt
 
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+nul
+
+# AI-generated documentation (versionar apenas estrutura e README)
+docs/ai-generated/**/*.md
+!docs/ai-generated/README.md
+
+# Uploads
 uploads/

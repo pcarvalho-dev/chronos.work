@@ -141,7 +141,7 @@ export class User {
     isApproved!: boolean;
 
     @Column({ type: 'varchar', default: 'employee' })
-    role!: 'manager' | 'employee';
+    role!: 'manager' | 'employee' | 'hr' | 'admin';
 
     @Column({ type: 'varchar', nullable: true })
     invitationCode?: string;

@@ -2827,6 +2827,263 @@ registry.registerPath({
   }
 });
 
+// ==================== AUDIT ENDPOINTS ====================
+
+// Audit Schemas
+export const AuditHistoryItemSchema = registry.register(
+  'AuditHistoryItem',
+  z.object({
+    id: z.number().openapi({ example: 1 }),
+    user: z.object({
+      id: z.number().openapi({ example: 1 }),
+      name: z.string().openapi({ example: 'Pablo Silva' }),
+      email: z.string().email().openapi({ example: 'pablo@email.com' })
+    }),
+    fieldName: z.string().openapi({ example: 'salary' }),
+    fieldDisplayName: z.string().openapi({ example: 'Salário' }),
+    oldValue: z.any().nullable().openapi({ example: 3000 }),
+    newValue: z.any().nullable().openapi({ example: 3500 }),
+    diff: z.string().openapi({ example: 'Salário: 3000 → 3500' }),
+    changedBy: z.object({
+      id: z.number().openapi({ example: 2 }),
+      name: z.string().openapi({ example: 'Gestor Silva' }),
+      email: z.string().email().openapi({ example: 'gestor@email.com' })
+    }),
+    justification: z.string().nullable().openapi({ example: 'Promoção aprovada' }),
+    ipAddress: z.string().nullable().openapi({ example: '192.168.1.1' }),
+    createdAt: z.string().datetime().openapi({ example: '2024-01-15T10:30:00Z' })
+  })
+);
+
+export const AuditConfigurationSchema = registry.register(
+  'AuditConfiguration',
+  z.object({
+    trackedFields: z.array(z.string()).openapi({
+      example: ['salary', 'position', 'department', 'isActive', 'role']
+    }),
+    requireJustification: z.boolean().openapi({ example: false }),
+    isEnabled: z.boolean().openapi({ example: true }),
+    updatedAt: z.string().datetime().openapi({ example: '2024-01-15T10:30:00Z' })
+  })
+);
+
+export const UpdateAuditConfigRequestSchema = registry.register(
+  'UpdateAuditConfigRequest',
+  z.object({
+    trackedFields: z.array(z.string()).openapi({
+      example: ['salary', 'position', 'department', 'isActive', 'role']
+    }),
+    requireJustification: z.boolean().openapi({ example: false }),
+    isEnabled: z.boolean().openapi({ example: true })
+  })
+);
+
+export const AvailableFieldSchema = registry.register(
+  'AvailableField',
+  z.object({
+    value: z.string().openapi({ example: 'salary' }),
+    label: z.string().openapi({ example: 'Salário' })
+  })
+);
+
+// GET /audit/history
+registry.registerPath({
+  method: 'get',
+  path: '/audit/history',
+  tags: ['Audit'],
+  summary: 'Buscar histórico de alterações',
+  description: 'Retorna histórico de alterações de usuários com filtros e paginação. Requer permissão de manager, hr ou admin.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: z.object({
+      userId: z.string().regex(/^\d+$/).optional().openapi({
+        description: 'ID do usuário para filtrar',
+        example: '1'
+      }),
+      fieldName: z.string().optional().openapi({
+        description: 'Nome do campo alterado',
+        example: 'salary'
+      }),
+      changedById: z.string().regex(/^\d+$/).optional().openapi({
+        description: 'ID de quem fez a alteração',
+        example: '2'
+      }),
+      dateFrom: z.string().date().optional().openapi({
+        description: 'Data inicial (YYYY-MM-DD)',
+        example: '2024-01-01'
+      }),
+      dateTo: z.string().date().optional().openapi({
+        description: 'Data final (YYYY-MM-DD)',
+        example: '2024-12-31'
+      }),
+      page: z.string().optional().openapi({
+        description: 'Número da página',
+        example: '1'
+      }),
+      limit: z.string().optional().openapi({
+        description: 'Itens por página',
+        example: '10'
+      })
+    })
+  },
+  responses: {
+    200: {
+      description: 'Histórico retornado com sucesso',
+      content: {
+        'application/json': {
+          schema: z.object({
+            data: z.array(AuditHistoryItemSchema),
+            pagination: z.object({
+              page: z.number(),
+              limit: z.number(),
+              total: z.number(),
+              pages: z.number()
+            })
+          })
+        }
+      }
+    },
+    401: {
+      description: 'Não autenticado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    403: {
+      description: 'Sem permissão',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+// GET /audit/configuration
+registry.registerPath({
+  method: 'get',
+  path: '/audit/configuration',
+  tags: ['Audit'],
+  summary: 'Buscar configuração de auditoria',
+  description: 'Retorna configuração de auditoria da empresa. Requer permissão de manager ou admin.',
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Configuração retornada com sucesso',
+      content: {
+        'application/json': {
+          schema: AuditConfigurationSchema
+        }
+      }
+    },
+    401: {
+      description: 'Não autenticado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    403: {
+      description: 'Sem permissão',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+// PUT /audit/configuration
+registry.registerPath({
+  method: 'put',
+  path: '/audit/configuration',
+  tags: ['Audit'],
+  summary: 'Atualizar configuração de auditoria',
+  description: 'Atualiza configuração de auditoria da empresa. Requer permissão de manager ou admin.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateAuditConfigRequestSchema
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Configuração atualizada com sucesso',
+      content: {
+        'application/json': {
+          schema: z.object({
+            message: z.string(),
+            data: AuditConfigurationSchema
+          })
+        }
+      }
+    },
+    401: {
+      description: 'Não autenticado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    403: {
+      description: 'Sem permissão',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+// GET /audit/available-fields
+registry.registerPath({
+  method: 'get',
+  path: '/audit/available-fields',
+  tags: ['Audit'],
+  summary: 'Listar campos disponíveis para rastreamento',
+  description: 'Retorna lista de todos os campos que podem ser rastreados. Requer permissão de manager ou admin.',
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Campos retornados com sucesso',
+      content: {
+        'application/json': {
+          schema: z.object({
+            data: z.array(AvailableFieldSchema)
+          })
+        }
+      }
+    },
+    401: {
+      description: 'Não autenticado',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    403: {
+      description: 'Sem permissão',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
 export function generateOpenApiDocument() {
   const generator = new OpenApiGeneratorV31(registry.definitions);
 
@@ -2858,6 +3115,10 @@ export function generateOpenApiDocument() {
       {
         name: 'Manager',
         description: 'Endpoints de gerenciamento para gestores'
+      },
+      {
+        name: 'Audit',
+        description: 'Endpoints de auditoria e histórico de alterações'
       }
     ]
   });

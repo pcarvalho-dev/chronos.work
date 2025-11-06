@@ -1,7 +1,7 @@
 import type { MigrationInterface, QueryRunner } from "typeorm";
 
-export class AddCompanyAndInvitationSystem1734567890123 implements MigrationInterface {
-    name = 'AddCompanyAndInvitationSystem1734567890123'
+export class AddCompanyAndInvitationSystem1761200000000 implements MigrationInterface {
+    name = 'AddCompanyAndInvitationSystem1761200000000'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Create Company table
@@ -57,19 +57,12 @@ export class AddCompanyAndInvitationSystem1734567890123 implements MigrationInte
 
         // Add new columns to User table
         await queryRunner.query(`
-            ALTER TABLE "user" 
+            ALTER TABLE "user"
             ADD COLUMN "isApproved" boolean NOT NULL DEFAULT false,
             ADD COLUMN "invitationCode" character varying,
             ADD COLUMN "companyId" integer,
             ADD COLUMN "invitationId" integer,
             ADD COLUMN "role" character varying NOT NULL DEFAULT 'employee'
-        `);
-
-        // Update existing users to be approved and active
-        await queryRunner.query(`
-            UPDATE "user" 
-            SET "isActive" = true, "isApproved" = true 
-            WHERE "isActive" = true
         `);
 
         // Add foreign key constraints

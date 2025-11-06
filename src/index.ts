@@ -6,6 +6,7 @@ import { AppDataSource } from "./database/data-source.js";
 import authRouter from "./routes/auth.js";
 import timeLogRouter from "./routes/timeLog.js";
 import managerRouter from "./routes/manager.js";
+import auditRouter from "./routes/audit.js";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
@@ -87,6 +88,7 @@ app.get("/docs", (req, res) => {
 app.use("/auth", authRouter);
 app.use("/timelog", timeLogRouter);
 app.use("/manager", managerRouter);
+app.use("/audit", auditRouter);
 
 AppDataSource.initialize()
     .then(() => {

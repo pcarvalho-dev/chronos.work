@@ -26,6 +26,10 @@
     {
       "name": "Manager",
       "description": "Endpoints de gerenciamento para gestores"
+    },
+    {
+      "name": "Audit",
+      "description": "Endpoints de auditoria e histórico de alterações"
     }
   ],
   "components": {
@@ -1682,6 +1686,194 @@
         },
         "required": [
           "isActive"
+        ]
+      },
+      "AuditHistoryItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "number",
+                "example": 1
+              },
+              "name": {
+                "type": "string",
+                "example": "Pablo Silva"
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "example": "pablo@email.com"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "email"
+            ]
+          },
+          "fieldName": {
+            "type": "string",
+            "example": "salary"
+          },
+          "fieldDisplayName": {
+            "type": "string",
+            "example": "Salário"
+          },
+          "oldValue": {
+            "example": 3000
+          },
+          "newValue": {
+            "example": 3500
+          },
+          "diff": {
+            "type": "string",
+            "example": "Salário: 3000 → 3500"
+          },
+          "changedBy": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "number",
+                "example": 2
+              },
+              "name": {
+                "type": "string",
+                "example": "Gestor Silva"
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "example": "gestor@email.com"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "email"
+            ]
+          },
+          "justification": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Promoção aprovada"
+          },
+          "ipAddress": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "192.168.1.1"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "user",
+          "fieldName",
+          "fieldDisplayName",
+          "diff",
+          "changedBy",
+          "justification",
+          "ipAddress",
+          "createdAt"
+        ]
+      },
+      "AuditConfiguration": {
+        "type": "object",
+        "properties": {
+          "trackedFields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "salary",
+              "position",
+              "department",
+              "isActive",
+              "role"
+            ]
+          },
+          "requireJustification": {
+            "type": "boolean",
+            "example": false
+          },
+          "isEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        },
+        "required": [
+          "trackedFields",
+          "requireJustification",
+          "isEnabled",
+          "updatedAt"
+        ]
+      },
+      "UpdateAuditConfigRequest": {
+        "type": "object",
+        "properties": {
+          "trackedFields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "salary",
+              "position",
+              "department",
+              "isActive",
+              "role"
+            ]
+          },
+          "requireJustification": {
+            "type": "boolean",
+            "example": false
+          },
+          "isEnabled": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "trackedFields",
+          "requireJustification",
+          "isEnabled"
+        ]
+      },
+      "AvailableField": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "example": "salary"
+          },
+          "label": {
+            "type": "string",
+            "example": "Salário"
+          }
+        },
+        "required": [
+          "value",
+          "label"
         ]
       }
     },
@@ -4666,6 +4858,338 @@
           },
           "404": {
             "description": "Funcionário não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/audit/history": {
+      "get": {
+        "tags": [
+          "Audit"
+        ],
+        "summary": "Buscar histórico de alterações",
+        "description": "Retorna histórico de alterações de usuários com filtros e paginação. Requer permissão de manager, hr ou admin.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d+$",
+              "description": "ID do usuário para filtrar",
+              "example": "1"
+            },
+            "required": false,
+            "description": "ID do usuário para filtrar",
+            "name": "userId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Nome do campo alterado",
+              "example": "salary"
+            },
+            "required": false,
+            "description": "Nome do campo alterado",
+            "name": "fieldName",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d+$",
+              "description": "ID de quem fez a alteração",
+              "example": "2"
+            },
+            "required": false,
+            "description": "ID de quem fez a alteração",
+            "name": "changedById",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Data inicial (YYYY-MM-DD)",
+              "example": "2024-01-01"
+            },
+            "required": false,
+            "description": "Data inicial (YYYY-MM-DD)",
+            "name": "dateFrom",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Data final (YYYY-MM-DD)",
+              "example": "2024-12-31"
+            },
+            "required": false,
+            "description": "Data final (YYYY-MM-DD)",
+            "name": "dateTo",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Número da página",
+              "example": "1"
+            },
+            "required": false,
+            "description": "Número da página",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Itens por página",
+              "example": "10"
+            },
+            "required": false,
+            "description": "Itens por página",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Histórico retornado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AuditHistoryItem"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "number"
+                        },
+                        "limit": {
+                          "type": "number"
+                        },
+                        "total": {
+                          "type": "number"
+                        },
+                        "pages": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "page",
+                        "limit",
+                        "total",
+                        "pages"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/audit/configuration": {
+      "get": {
+        "tags": [
+          "Audit"
+        ],
+        "summary": "Buscar configuração de auditoria",
+        "description": "Retorna configuração de auditoria da empresa. Requer permissão de manager ou admin.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Configuração retornada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditConfiguration"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Audit"
+        ],
+        "summary": "Atualizar configuração de auditoria",
+        "description": "Atualiza configuração de auditoria da empresa. Requer permissão de manager ou admin.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAuditConfigRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Configuração atualizada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AuditConfiguration"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/audit/available-fields": {
+      "get": {
+        "tags": [
+          "Audit"
+        ],
+        "summary": "Listar campos disponíveis para rastreamento",
+        "description": "Retorna lista de todos os campos que podem ser rastreados. Requer permissão de manager ou admin.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Campos retornados com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AvailableField"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão",
             "content": {
               "application/json": {
                 "schema": {

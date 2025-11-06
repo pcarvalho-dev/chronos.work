@@ -1,0 +1,82 @@
+# ==============================================================================
+# .dockerignore - Chronos.work API
+# Otimiza o build do Docker excluindo arquivos desnecessários
+# ==============================================================================
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output (será gerado no container)
+dist/
+
+# Environment files (usar secrets do Cloud Run)
+.env
+.env.*
+!.env.example
+
+# Tests
+tests/
+coverage/
+.nyc_output/
+**/*.test.ts
+**/*.spec.ts
+vitest.config.ts
+tsconfig.test.json
+tsconfig.vitest.json
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+nul
+
+# Test cookies
+cookies*.txt
+
+# Uploads (usar Cloud Storage em produção)
+uploads/*
+!uploads/.gitkeep
+
+# Development scripts
+scripts/check-db-config.js
+scripts/generate-openapi.ts
+
+# Render config
+render.yaml
+RENDER_ENETUNREACH_FIX.md
+DEPLOY_RENDER.md
+OPENAPI_README.md
+CLAUDE.md

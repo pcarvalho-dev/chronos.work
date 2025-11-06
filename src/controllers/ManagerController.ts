@@ -7,6 +7,7 @@ import { Company } from '../models/Company.js';
 import { Invitation } from '../models/Invitation.js';
 import { JwtService } from '../services/jwtService.js';
 import emailService from '../services/emailService.js';
+import { trackUserChanges } from '../services/auditService.js';
 
 export class ManagerController {
     /**
@@ -307,8 +308,8 @@ export class ManagerController {
             const userRepository = AppDataSource.getRepository(User);
 
             const employee = await userRepository.findOne({
-                where: { 
-                    id: userId, 
+                where: {
+                    id: userId,
                     companyId: manager.companyId!,
                     role: 'employee'
                 }
@@ -318,9 +319,34 @@ export class ManagerController {
                 return res.status(404).json({ message: 'Funcionário não encontrado' });
             }
 
+            // Create a copy of the old employee data for audit tracking
+            const oldEmployeeData = { ...employee };
+
+            // Prepare update data
+            const updateData: Partial<User> = {
+                isApproved: approved,
+                isActive: approved // Auto-activate if approved
+            };
+
+            if (notes) {
+                updateData.notes = notes;
+            }
+
+            // Track changes (audit trail)
+            await trackUserChanges(
+                employee.id,
+                oldEmployeeData,
+                updateData,
+                manager.id,
+                req.ip,
+                req.get('user-agent'),
+                approved ? 'Aprovação de cadastro' : 'Rejeição de cadastro'
+            );
+
+            // Apply changes
             employee.isApproved = approved;
-            employee.isActive = approved; // Auto-activate if approved
-            
+            employee.isActive = approved;
+
             if (notes) {
                 employee.notes = notes;
             }

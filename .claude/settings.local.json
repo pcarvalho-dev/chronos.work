@@ -57,7 +57,11 @@
       "Bash(npm run check:db:*)",
       "Bash(timeout 10 npm start)",
       "Read(//home/pablo/Projetos/chronoswork-front/**)",
-      "Read(//home/pablo/Projetos/chronos_work_mobile/**)"
+      "Read(//home/pablo/Projetos/chronos_work_mobile/**)",
+      "Bash(npm test:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npx tsc:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []
