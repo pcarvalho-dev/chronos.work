@@ -1,0 +1,7 @@
+# Mark documentation files as linguist-documentation to exclude from language stats and contributor graphs
+CLAUDE.md linguist-documentation
+*.md linguist-documentation=false
+CLAUDE.md linguist-documentation=true
+
+# Mark generated files
+openapi.json linguist-generated=true
