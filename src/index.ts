@@ -92,7 +92,7 @@ app.use("/audit", auditRouter);
 
 AppDataSource.initialize()
     .then(() => {
-        console.log("Data Source has been initialized!");
+        console.log("Starting server...");
 
         app.listen(apiPort, () => {
             console.log(`Server is running on port ${apiPort}`);
