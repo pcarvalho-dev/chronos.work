@@ -350,7 +350,3 @@ Este projeto está sob a licença ISC.
 
 - GitHub: [@pcarvalho-dev](https://github.com/pcarvalho-dev)
 - Projeto: [chronos.work](https://github.com/pcarvalho-dev/chronos.work)
-
----
-
-**Desenvolvido com ❤️ usando [Claude Code](https://claude.com/claude-code)**
