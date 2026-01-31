@@ -1,6 +1,10 @@
 # Chronos.work
 
-API de controle de ponto e gerenciamento de tempo de trabalho construída com Node.js, Express, TypeORM e PostgreSQL.
+Sistema completo de gestao de ponto eletronico para empresas, construido com Node.js e PostgreSQL.
+
+**Licenca:** MIT | **Versao:** 1.2.0
+
+> Ultima atualizacao de documentacao: Janeiro 2026
 
 ## 📋 Índice
 
@@ -24,10 +28,10 @@ Chronos.work é uma API REST para gerenciamento de tempo de trabalho que permite
 
 ## ✨ Funcionalidades
 
-- 🔐 **Autenticação de Usuários**: Sistema completo de registro e login com Passport.js
-- ⏰ **Check-in/Check-out**: Registre entrada e saída do trabalho
-- 📊 **Histórico de Registros**: Visualize todos os seus registros de ponto
-- 📝 **Documentação Automática**: OpenAPI gerada automaticamente a partir do código
+- 🔐 **Multi-tenancy**: Suporte a multiplas empresas na mesma instancia
+- ⏰ **Registro de Ponto**: Sistema de entrada e saida com foto
+- 📊 **Relatorios Gerenciais**: Exporte relatorios em PDF e Excel
+- 📝 **Integracao com RH**: Conecte com sistemas de folha de pagamento
 - 🎨 **Interface Interativa**: Teste a API diretamente pelo navegador com Scalar
 - 🔒 **Senhas Seguras**: Hash de senhas com bcrypt
 - ✅ **Validação de Dados**: Validação com Zod
