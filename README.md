@@ -2,7 +2,9 @@
 
 Sistema completo de gestao de ponto eletronico para empresas, construido com Node.js e PostgreSQL.
 
-**Licenca:** MIT
+**Licenca:** MIT | **Versao:** 1.2.0
+
+> Ultima atualizacao de documentacao: Janeiro 2026
 
 ## 📋 Índice
 
