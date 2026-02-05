@@ -4,6 +4,7 @@ import { UserMovementHistory } from '../models/UserMovementHistory.js';
 import { User } from '../models/User.js';
 import { getOrCreateAuditConfiguration, getFieldDisplayName } from '../services/auditService.js';
 import { AuditConfiguration } from '../models/AuditConfiguration.js';
+import { logger } from '../utils/logger.js';
 
 export class AuditController {
     /**
@@ -92,7 +93,11 @@ export class AuditController {
                 }
             });
         } catch (error) {
-            console.error('Erro ao buscar histórico:', error);
+            logger.error('Failed to fetch audit history', error as Error, {
+                userId: req.query.userId as string,
+                companyId: currentUser?.companyId,
+                action: 'getHistory'
+            });
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
@@ -118,7 +123,10 @@ export class AuditController {
                 updatedAt: config.updatedAt
             });
         } catch (error) {
-            console.error('Erro ao buscar configuração:', error);
+            logger.error('Failed to fetch audit configuration', error as Error, {
+                companyId: currentUser?.companyId,
+                action: 'getConfiguration'
+            });
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
@@ -168,7 +176,11 @@ export class AuditController {
                 }
             });
         } catch (error) {
-            console.error('Erro ao atualizar configuração:', error);
+            logger.error('Failed to update audit configuration', error as Error, {
+                companyId: currentUser?.companyId,
+                action: 'updateConfiguration',
+                metadata: req.body
+            });
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
@@ -228,7 +240,9 @@ export class AuditController {
 
             res.json({ data: fields });
         } catch (error) {
-            console.error('Erro ao buscar campos disponíveis:', error);
+            logger.error('Failed to fetch available audit fields', error as Error, {
+                action: 'getAvailableFields'
+            });
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
