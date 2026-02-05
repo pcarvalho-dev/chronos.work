@@ -8,6 +8,7 @@ import { Invitation } from '../models/Invitation.js';
 import { JwtService } from '../services/jwtService.js';
 import emailService from '../services/emailService.js';
 import { trackUserChanges } from '../services/auditService.js';
+import { logger } from '../utils/logger.js';
 
 export class ManagerController {
     /**
@@ -75,7 +76,12 @@ export class ManagerController {
 
                 // Send welcome email
                 emailService.sendWelcomeEmail(savedManager.email, savedManager.name).catch(err => {
-                    console.error('Error sending welcome email:', err);
+                    logger.error('Failed to send welcome email after manager registration', err as Error, {
+                        userId: savedManager.id,
+                        companyId: savedCompany.id,
+                        email: savedManager.email,
+                        action: 'registerManager'
+                    });
                 });
 
                 // Remove sensitive data from response
@@ -97,7 +103,12 @@ export class ManagerController {
             }
 
         } catch (error) {
-            console.error('Manager registration error:', error);
+            logger.error('Manager registration failed', error as Error, {
+                email: managerData.email,
+                companyName: company.name,
+                cnpj: company.cnpj,
+                action: 'registerManager'
+            });
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
@@ -146,7 +157,13 @@ export class ManagerController {
 
             // Send invitation email
             emailService.sendInvitationEmail(email, name || 'Funcionário', code, manager.name).catch(err => {
-                console.error('Error sending invitation email:', err);
+                logger.error('Failed to send invitation email', err as Error, {
+                    userId: manager.id,
+                    companyId: manager.companyId,
+                    invitationCode: code,
+                    recipientEmail: email,
+                    action: 'createInvitation'
+                });
             });
 
             res.status(201).json({
@@ -163,7 +180,12 @@ export class ManagerController {
             });
 
         } catch (error) {
-            console.error('Create invitation error:', error);
+            logger.error('Failed to create employee invitation', error as Error, {
+                userId: (req.user as any)?.id,
+                companyId: (req.user as any)?.companyId,
+                recipientEmail: email,
+                action: 'createInvitation'
+            });
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
@@ -208,7 +230,12 @@ export class ManagerController {
             });
 
         } catch (error) {
-            console.error('Get invitations error:', error);
+            logger.error('Failed to fetch company invitations', error as Error, {
+                userId: manager.id,
+                companyId: manager.companyId,
+                filters: { status, page, limit },
+                action: 'getInvitations'
+            });
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
@@ -241,7 +268,12 @@ export class ManagerController {
             res.json({ message: 'Convite cancelado com sucesso' });
 
         } catch (error) {
-            console.error('Cancel invitation error:', error);
+            logger.error('Failed to cancel employee invitation', error as Error, {
+                userId: manager.id,
+                companyId: manager.companyId,
+                invitationId,
+                action: 'cancelInvitation'
+            });
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
@@ -292,7 +324,12 @@ export class ManagerController {
             });
 
         } catch (error) {
-            console.error('Get pending approvals error:', error);
+            logger.error('Failed to fetch pending employee approvals', error as Error, {
+                userId: manager.id,
+                companyId: manager.companyId,
+                filters: { search, page, limit },
+                action: 'getPendingApprovals'
+            });
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
@@ -356,11 +393,23 @@ export class ManagerController {
             // Send approval/rejection email
             if (approved) {
                 emailService.sendApprovalEmail(employee.email, employee.name).catch(err => {
-                    console.error('Error sending approval email:', err);
+                    logger.error('Failed to send employee approval email', err as Error, {
+                        userId: manager.id,
+                        companyId: manager.companyId,
+                        employeeId: employeeId,
+                        employeeEmail: employee.email,
+                        action: 'approveEmployee'
+                    });
                 });
             } else {
                 emailService.sendRejectionEmail(employee.email, employee.name, notes).catch(err => {
-                    console.error('Error sending rejection email:', err);
+                    logger.error('Failed to send employee rejection email', err as Error, {
+                        userId: manager.id,
+                        companyId: manager.companyId,
+                        employeeId: employeeId,
+                        employeeEmail: employee.email,
+                        action: 'rejectEmployee'
+                    });
                 });
             }
 
@@ -376,7 +425,13 @@ export class ManagerController {
             });
 
         } catch (error) {
-            console.error('Approve employee error:', error);
+            logger.error('Failed to approve/reject employee', error as Error, {
+                userId: manager.id,
+                companyId: manager.companyId,
+                employeeId: employeeId,
+                approved: approved,
+                action: 'approveEmployee'
+            });
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
@@ -437,7 +492,12 @@ export class ManagerController {
             });
 
         } catch (error) {
-            console.error('Get employees error:', error);
+            logger.error('Failed to fetch company employees', error as Error, {
+                userId: manager.id,
+                companyId: manager.companyId,
+                filters: { status, search, page, limit },
+                action: 'getEmployees'
+            });
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
@@ -462,7 +522,11 @@ export class ManagerController {
             res.json({ company });
 
         } catch (error) {
-            console.error('Get company error:', error);
+            logger.error('Failed to fetch company information', error as Error, {
+                userId: manager.id,
+                companyId: manager.companyId,
+                action: 'getCompany'
+            });
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
@@ -505,7 +569,12 @@ export class ManagerController {
             });
 
         } catch (error) {
-            console.error('Update company error:', error);
+            logger.error('Failed to update company information', error as Error, {
+                userId: manager.id,
+                companyId: manager.companyId,
+                updateData: Object.keys(updateData),
+                action: 'updateCompany'
+            });
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
