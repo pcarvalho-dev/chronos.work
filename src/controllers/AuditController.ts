@@ -4,6 +4,7 @@ import { UserMovementHistory } from '../models/UserMovementHistory.js';
 import { User } from '../models/User.js';
 import { getOrCreateAuditConfiguration, getFieldDisplayName } from '../services/auditService.js';
 import { AuditConfiguration } from '../models/AuditConfiguration.js';
+import { logger } from '../utils/logger.js';
 
 export class AuditController {
     /**
@@ -92,7 +93,12 @@ export class AuditController {
                 }
             });
         } catch (error) {
-            console.error('Erro ao buscar histórico:', error);
+            logger.error('Failed to fetch audit history', error as Error, {
+                userId: req.params.userId,
+                companyId: currentUser?.companyId,
+                filters: { page, limit, startDate, endDate },
+                action: 'getHistory'
+            });
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
@@ -118,7 +124,11 @@ export class AuditController {
                 updatedAt: config.updatedAt
             });
         } catch (error) {
-            console.error('Erro ao buscar configuração:', error);
+            logger.error('Failed to fetch audit configuration', error as Error, {
+                userId: currentUser.id,
+                companyId: currentUser.companyId,
+                action: 'getAuditConfiguration'
+            });
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
@@ -168,7 +178,12 @@ export class AuditController {
                 }
             });
         } catch (error) {
-            console.error('Erro ao atualizar configuração:', error);
+            logger.error('Failed to update audit configuration', error as Error, {
+                userId: currentUser.id,
+                companyId: currentUser.companyId,
+                updateData: { trackedFields, requireJustification, isEnabled },
+                action: 'updateAuditConfiguration'
+            });
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
@@ -228,7 +243,11 @@ export class AuditController {
 
             res.json({ data: fields });
         } catch (error) {
-            console.error('Erro ao buscar campos disponíveis:', error);
+            logger.error('Failed to fetch available audit fields', error as Error, {
+                userId: (req.user as User)?.id,
+                companyId: (req.user as User)?.companyId,
+                action: 'getAvailableFields'
+            });
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }
