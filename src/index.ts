@@ -91,7 +91,14 @@ app.use("/manager", managerRouter);
 app.use("/audit", auditRouter);
 
 AppDataSource.initialize()
-    .then(() => {
+    .then(async () => {
+        // Run pending migrations automatically
+        const migrations = await AppDataSource.runMigrations();
+        if (migrations.length > 0) {
+            console.log(`Migrations executed: ${migrations.length}`);
+            migrations.forEach(m => console.log(` - ${m.name}`));
+        }
+
         console.log("Starting server...");
 
         app.listen(apiPort, () => {

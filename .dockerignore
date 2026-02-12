@@ -72,7 +72,6 @@ uploads/*
 
 # Development scripts
 scripts/check-db-config.js
-scripts/generate-openapi.ts
 
 # Render config
 render.yaml

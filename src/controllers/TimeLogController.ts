@@ -63,7 +63,7 @@ export class TimeLogController {
 
             await timeLogRepository.save(checkIn);
 
-            res.status(201).json({ message: 'Checked in successfully', checkIn });
+            res.status(201).json({ message: 'Checked in successfully', timeLog: checkIn });
         } catch (error) {
             console.error('Error in checkIn:', error);
             res.status(500).json({ message: 'Internal server error' });

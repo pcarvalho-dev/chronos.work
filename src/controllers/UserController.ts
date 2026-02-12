@@ -61,6 +61,69 @@ export class UserController {
     }
 
     /**
+     * Handle generic user registration (without invitation code or company)
+     */
+    static async register(req: Request, res: Response) {
+        const { password, ...userData } = req.body;
+
+        try {
+            const userRepository = AppDataSource.getRepository(User);
+
+            // Check if user already exists
+            const existingUser = await userRepository.findOne({ where: { email: userData.email } });
+            if (existingUser) {
+                return res.status(400).json({ message: 'Usuário com este email já existe' });
+            }
+
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            // Process date fields
+            const processedData: Record<string, unknown> = { ...userData };
+            if (processedData['birthDate'] && typeof processedData['birthDate'] === 'string') {
+                processedData['birthDate'] = new Date(processedData['birthDate']);
+            }
+            if (processedData['hireDate'] && typeof processedData['hireDate'] === 'string') {
+                processedData['hireDate'] = new Date(processedData['hireDate']);
+            }
+
+            const newUser = userRepository.create({
+                ...processedData,
+                password: hashedPassword,
+                role: 'employee',
+                isActive: true,
+                isApproved: true,
+            } as Partial<User>);
+
+            const savedUser = await userRepository.save(newUser);
+
+            // Generate tokens
+            const { accessToken, refreshToken } = JwtService.generateTokens(savedUser.id, savedUser.email);
+
+            // Save refresh token
+            savedUser.refreshToken = refreshToken;
+            await userRepository.save(savedUser);
+
+            // Remove sensitive data
+            const { password: _, refreshToken: __, ...userResponse } = savedUser as any;
+
+            // Send welcome email asynchronously
+            emailService.sendWelcomeEmail(savedUser.email, savedUser.name).catch((err: unknown) => {
+                console.error('Error sending welcome email:', err);
+            });
+
+            res.status(201).json({
+                message: 'Registered successfully',
+                user: userResponse,
+                accessToken,
+                refreshToken,
+            });
+        } catch (error) {
+            console.error('Register error:', error);
+            res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+
+    /**
      * Handle employee registration with invitation code
      */
     static async registerEmployee(req: Request, res: Response) {

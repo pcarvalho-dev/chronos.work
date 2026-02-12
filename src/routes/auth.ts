@@ -16,6 +16,9 @@ const router = Router();
 
 router.post('/login', validate(loginSchema), UserController.login);
 
+// Generic user registration
+router.post('/register', validate(registerSchema), UserController.register);
+
 // Manager registration (creates company and manager)
 router.post('/register-manager', validate(managerRegisterSchema), ManagerController.registerManager);
 

@@ -9,8 +9,8 @@ export const getHistoryQuerySchema = z.object({
     changedById: z.string().regex(/^\d+$/).transform(Number).optional(),
     dateFrom: z.string().date().optional(),
     dateTo: z.string().date().optional(),
-    page: z.string().regex(/^\d+$/).transform(Number).optional().default('1'),
-    limit: z.string().regex(/^\d+$/).transform(Number).optional().default('10')
+    page: z.string().regex(/^\d+$/).optional().default('1').transform(Number),
+    limit: z.string().regex(/^\d+$/).optional().default('10').transform(Number)
 });
 
 /**

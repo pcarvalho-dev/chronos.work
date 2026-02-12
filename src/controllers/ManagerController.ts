@@ -5,6 +5,7 @@ import { AppDataSource } from '../database/data-source.js';
 import { User } from '../models/User.js';
 import { Company } from '../models/Company.js';
 import { Invitation } from '../models/Invitation.js';
+import { UserCheckIn } from '../models/UserCheckIn.js';
 import { JwtService } from '../services/jwtService.js';
 import emailService from '../services/emailService.js';
 import { trackUserChanges } from '../services/auditService.js';
@@ -203,7 +204,7 @@ export class ManagerController {
                     page: Number(page),
                     limit: Number(limit),
                     total,
-                    pages: Math.ceil(total / Number(limit))
+                    totalPages: Math.ceil(total / Number(limit))
                 }
             });
 
@@ -282,12 +283,12 @@ export class ManagerController {
             });
 
             res.json({
-                employees: employeesResponse,
+                users: employeesResponse,
                 pagination: {
                     page: Number(page),
                     limit: Number(limit),
                     total,
-                    pages: Math.ceil(total / Number(limit))
+                    totalPages: Math.ceil(total / Number(limit))
                 }
             });
 
@@ -427,12 +428,12 @@ export class ManagerController {
             });
 
             res.json({
-                employees: employeesResponse,
+                users: employeesResponse,
                 pagination: {
                     page: Number(page),
                     limit: Number(limit),
                     total,
-                    pages: Math.ceil(total / Number(limit))
+                    totalPages: Math.ceil(total / Number(limit))
                 }
             });
 
@@ -476,7 +477,7 @@ export class ManagerController {
 
         try {
             const companyRepository = AppDataSource.getRepository(Company);
-            
+
             const company = await companyRepository.findOne({
                 where: { id: manager.companyId! }
             });
@@ -506,6 +507,629 @@ export class ManagerController {
 
         } catch (error) {
             console.error('Update company error:', error);
+            res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+    }
+
+    /**
+     * Get all users (employees and managers) for the company
+     */
+    static async getUsers(req: Request, res: Response) {
+        const manager = req.user as User;
+        const { page = 1, limit = 10, search, role } = req.query;
+
+        try {
+            const userRepository = AppDataSource.getRepository(User);
+
+            const queryBuilder = userRepository
+                .createQueryBuilder('user')
+                .where('user.companyId = :companyId', { companyId: manager.companyId })
+                .orderBy('user.createdAt', 'DESC');
+
+            // Filter by role if provided
+            if (role) {
+                queryBuilder.andWhere('user.role = :role', { role });
+            }
+
+            // Search by name or email
+            if (search) {
+                queryBuilder.andWhere(
+                    '(user.name ILIKE :search OR user.email ILIKE :search)',
+                    { search: `%${search}%` }
+                );
+            }
+
+            const [users, total] = await queryBuilder
+                .skip((Number(page) - 1) * Number(limit))
+                .take(Number(limit))
+                .getManyAndCount();
+
+            // Remove sensitive data
+            const usersResponse = users.map(user => {
+                const { password, refreshToken, ...userData } = user as any;
+                return userData;
+            });
+
+            res.json({
+                users: usersResponse,
+                pagination: {
+                    page: Number(page),
+                    limit: Number(limit),
+                    total,
+                    totalPages: Math.ceil(total / Number(limit))
+                }
+            });
+
+        } catch (error) {
+            console.error('Get users error:', error);
+            res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+    }
+
+    /**
+     * Get user by ID
+     */
+    static async getUserById(req: Request, res: Response) {
+        const { id } = req.params;
+        const manager = req.user as User;
+
+        try {
+            const userRepository = AppDataSource.getRepository(User);
+
+            const user = await userRepository.findOne({
+                where: {
+                    id: Number(id),
+                    companyId: manager.companyId!
+                }
+            });
+
+            if (!user) {
+                return res.status(404).json({ message: 'Usuário não encontrado' });
+            }
+
+            // Remove sensitive data
+            const { password, refreshToken, ...userData } = user as any;
+
+            res.json({ user: userData });
+
+        } catch (error) {
+            console.error('Get user by id error:', error);
+            res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+    }
+
+    /**
+     * Create new user
+     */
+    static async createUser(req: Request, res: Response) {
+        const userData = req.body;
+        const manager = req.user as User;
+
+        try {
+            const userRepository = AppDataSource.getRepository(User);
+
+            // Check if email already exists
+            const existingUser = await userRepository.findOne({ where: { email: userData.email } });
+            if (existingUser) {
+                return res.status(400).json({ message: 'Email já está em uso' });
+            }
+
+            // Hash password
+            const hashedPassword = await bcrypt.hash(userData.password, 10);
+
+            // Process date fields
+            const processedData: any = { ...userData };
+            if (processedData.birthDate) {
+                processedData.birthDate = new Date(processedData.birthDate);
+            }
+            if (processedData.hireDate) {
+                processedData.hireDate = new Date(processedData.hireDate);
+            }
+
+            // Create user
+            const newUser = userRepository.create({
+                ...processedData,
+                password: hashedPassword,
+                companyId: manager.companyId!,
+                isActive: true,
+                isApproved: true
+            });
+
+            const savedUser = await userRepository.save(newUser);
+
+            // Ensure savedUser is a User object (not an array)
+            const userResult = Array.isArray(savedUser) ? savedUser[0]! : savedUser;
+
+            // Send welcome email
+            emailService.sendWelcomeEmail(userResult.email, userResult.name).catch(err => {
+                console.error('Error sending welcome email:', err);
+            });
+
+            // Remove sensitive data
+            const { password: _, refreshToken: __, ...userResponse } = userResult as any;
+
+            res.status(201).json({
+                message: 'Usuário criado com sucesso',
+                user: userResponse
+            });
+
+        } catch (error) {
+            console.error('Create user error:', error);
+            res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+    }
+
+    /**
+     * Update user
+     */
+    static async updateUser(req: Request, res: Response) {
+        const { id } = req.params;
+        const updateData = req.body;
+        const manager = req.user as User;
+
+        try {
+            const userRepository = AppDataSource.getRepository(User);
+
+            const user = await userRepository.findOne({
+                where: {
+                    id: Number(id),
+                    companyId: manager.companyId!
+                }
+            });
+
+            if (!user) {
+                return res.status(404).json({ message: 'Usuário não encontrado' });
+            }
+
+            // Store old user data for audit
+            const oldUserData = { ...user };
+
+            // Process date fields
+            if (updateData.birthDate) {
+                updateData.birthDate = new Date(updateData.birthDate);
+            }
+            if (updateData.hireDate) {
+                updateData.hireDate = new Date(updateData.hireDate);
+            }
+
+            // Don't allow password updates through this endpoint
+            delete updateData.password;
+            delete updateData.refreshToken;
+
+            // Track changes
+            await trackUserChanges(
+                user.id,
+                oldUserData,
+                updateData,
+                manager.id,
+                req.ip,
+                req.get('user-agent'),
+                'Atualização de dados do usuário'
+            );
+
+            // Apply updates
+            Object.assign(user, updateData);
+            const savedUser = await userRepository.save(user);
+
+            // Remove sensitive data
+            const { password, refreshToken, ...userResponse } = savedUser as any;
+
+            res.json({
+                message: 'Usuário atualizado com sucesso',
+                user: userResponse
+            });
+
+        } catch (error) {
+            console.error('Update user error:', error);
+            res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+    }
+
+    /**
+     * Toggle user active status
+     */
+    static async toggleUserStatus(req: Request, res: Response) {
+        const { id } = req.params;
+        const manager = req.user as User;
+
+        try {
+            const userRepository = AppDataSource.getRepository(User);
+
+            const user = await userRepository.findOne({
+                where: {
+                    id: Number(id),
+                    companyId: manager.companyId!
+                }
+            });
+
+            if (!user) {
+                return res.status(404).json({ message: 'Usuário não encontrado' });
+            }
+
+            // Store old data for audit
+            const oldUserData = { ...user };
+
+            // Toggle status
+            user.isActive = !user.isActive;
+
+            // Track changes
+            await trackUserChanges(
+                user.id,
+                oldUserData,
+                { isActive: user.isActive },
+                manager.id,
+                req.ip,
+                req.get('user-agent'),
+                user.isActive ? 'Ativação de usuário' : 'Desativação de usuário'
+            );
+
+            await userRepository.save(user);
+
+            // Remove sensitive data
+            const { password, refreshToken, ...userResponse } = user as any;
+
+            res.json({
+                message: `Usuário ${user.isActive ? 'ativado' : 'desativado'} com sucesso`,
+                user: userResponse
+            });
+
+        } catch (error) {
+            console.error('Toggle user status error:', error);
+            res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+    }
+
+    /**
+     * Delete user
+     */
+    static async deleteUser(req: Request, res: Response) {
+        const { id } = req.params;
+        const manager = req.user as User;
+
+        try {
+            const userRepository = AppDataSource.getRepository(User);
+
+            const user = await userRepository.findOne({
+                where: {
+                    id: Number(id),
+                    companyId: manager.companyId!
+                }
+            });
+
+            if (!user) {
+                return res.status(404).json({ message: 'Usuário não encontrado' });
+            }
+
+            // Prevent manager from deleting themselves
+            if (user.id === manager.id) {
+                return res.status(400).json({ message: 'Você não pode deletar sua própria conta' });
+            }
+
+            // Hard delete
+            await userRepository.remove(user);
+
+            res.json({ message: 'Usuário deletado com sucesso' });
+
+        } catch (error) {
+            console.error('Delete user error:', error);
+            res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+    }
+
+    /**
+     * Change user password
+     */
+    static async changeUserPassword(req: Request, res: Response) {
+        const { userId, newPassword } = req.body;
+        const manager = req.user as User;
+
+        try {
+            const userRepository = AppDataSource.getRepository(User);
+
+            const user = await userRepository.findOne({
+                where: {
+                    id: userId,
+                    companyId: manager.companyId!
+                }
+            });
+
+            if (!user) {
+                return res.status(404).json({ message: 'Usuário não encontrado' });
+            }
+
+            // Hash new password
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+            // Store old data for audit
+            const oldUserData = { ...user };
+
+            // Update password
+            user.password = hashedPassword;
+
+            // Track changes
+            await trackUserChanges(
+                user.id,
+                oldUserData,
+                { password: 'REDACTED' },
+                manager.id,
+                req.ip,
+                req.get('user-agent'),
+                'Alteração de senha pelo gestor'
+            );
+
+            await userRepository.save(user);
+
+            res.json({ message: 'Senha alterada com sucesso' });
+
+        } catch (error) {
+            console.error('Change user password error:', error);
+            res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+    }
+
+    /**
+     * Get time logs for a specific user
+     */
+    static async getUserTimeLogs(req: Request, res: Response) {
+        const { userId } = req.params;
+        const manager = req.user as User;
+        const { page = 1, limit = 10 } = req.query;
+
+        try {
+            const userRepository = AppDataSource.getRepository(User);
+            const timeLogRepository = AppDataSource.getRepository(UserCheckIn);
+
+            // Verify user belongs to manager's company
+            const user = await userRepository.findOne({
+                where: {
+                    id: Number(userId),
+                    companyId: manager.companyId!
+                }
+            });
+
+            if (!user) {
+                return res.status(404).json({ message: 'Usuário não encontrado' });
+            }
+
+            const [timeLogs, total] = await timeLogRepository
+                .createQueryBuilder('timeLog')
+                .leftJoinAndSelect('timeLog.user', 'user')
+                .leftJoinAndSelect('timeLog.approver', 'approver')
+                .where('user.id = :userId', { userId: Number(userId) })
+                .orderBy('timeLog.checkIn', 'DESC')
+                .skip((Number(page) - 1) * Number(limit))
+                .take(Number(limit))
+                .getManyAndCount();
+
+            res.json({
+                timeLogs,
+                pagination: {
+                    page: Number(page),
+                    limit: Number(limit),
+                    total,
+                    totalPages: Math.ceil(total / Number(limit))
+                }
+            });
+
+        } catch (error) {
+            console.error('Get user time logs error:', error);
+            res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+    }
+
+    /**
+     * Create manual time log entry
+     */
+    static async createManualTimeLog(req: Request, res: Response) {
+        const { userId, checkIn, checkOut, reason, checkInLocation, checkOutLocation } = req.body;
+        const manager = req.user as User;
+
+        try {
+            const userRepository = AppDataSource.getRepository(User);
+            const timeLogRepository = AppDataSource.getRepository(UserCheckIn);
+
+            // Verify user belongs to manager's company
+            const user = await userRepository.findOne({
+                where: {
+                    id: userId,
+                    companyId: manager.companyId!
+                }
+            });
+
+            if (!user) {
+                return res.status(404).json({ message: 'Usuário não encontrado' });
+            }
+
+            // Create manual time log entry
+            const timeLogData: any = {
+                user,
+                checkIn: new Date(checkIn),
+                isManual: true,
+                reason,
+                status: 'pending_approval'
+            };
+
+            if (checkOut) {
+                timeLogData.checkOut = new Date(checkOut);
+            }
+            if (checkInLocation) {
+                timeLogData.checkInLocation = checkInLocation;
+            }
+            if (checkOutLocation) {
+                timeLogData.checkOutLocation = checkOutLocation;
+            }
+
+            const timeLog = timeLogRepository.create(timeLogData);
+
+            const savedTimeLog = await timeLogRepository.save(timeLog);
+
+            res.status(201).json({
+                message: 'Lançamento manual criado com sucesso',
+                timeLog: savedTimeLog
+            });
+
+        } catch (error) {
+            console.error('Create manual time log error:', error);
+            res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+    }
+
+    /**
+     * Approve or reject time log
+     */
+    static async approveOrRejectTimeLog(req: Request, res: Response) {
+        const { timeLogId, approved, rejectionReason } = req.body;
+        const manager = req.user as User;
+
+        try {
+            const timeLogRepository = AppDataSource.getRepository(UserCheckIn);
+
+            const timeLog = await timeLogRepository
+                .createQueryBuilder('timeLog')
+                .leftJoinAndSelect('timeLog.user', 'user')
+                .where('timeLog.id = :timeLogId', { timeLogId })
+                .andWhere('user.companyId = :companyId', { companyId: manager.companyId })
+                .getOne();
+
+            if (!timeLog) {
+                return res.status(404).json({ message: 'Lançamento não encontrado' });
+            }
+
+            // Update status
+            timeLog.status = approved ? 'approved' : 'rejected';
+            timeLog.approver = manager;
+            timeLog.approvalDate = new Date();
+
+            if (!approved && rejectionReason) {
+                timeLog.rejectionReason = rejectionReason;
+            }
+
+            const savedTimeLog = await timeLogRepository.save(timeLog);
+
+            res.json({
+                message: approved ? 'Lançamento aprovado com sucesso' : 'Lançamento rejeitado',
+                timeLog: savedTimeLog
+            });
+
+        } catch (error) {
+            console.error('Approve/reject time log error:', error);
+            res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+    }
+
+    /**
+     * Get pending time logs for approval
+     */
+    static async getManagerPendingTimeLogs(req: Request, res: Response) {
+        const manager = req.user as User;
+        const { page = 1, limit = 10 } = req.query;
+
+        try {
+            const timeLogRepository = AppDataSource.getRepository(UserCheckIn);
+
+            const [timeLogs, total] = await timeLogRepository
+                .createQueryBuilder('timeLog')
+                .leftJoinAndSelect('timeLog.user', 'user')
+                .where('user.companyId = :companyId', { companyId: manager.companyId })
+                .andWhere('timeLog.status = :status', { status: 'pending_approval' })
+                .orderBy('timeLog.checkIn', 'DESC')
+                .skip((Number(page) - 1) * Number(limit))
+                .take(Number(limit))
+                .getManyAndCount();
+
+            res.json({
+                timeLogs,
+                pagination: {
+                    page: Number(page),
+                    limit: Number(limit),
+                    total,
+                    totalPages: Math.ceil(total / Number(limit))
+                }
+            });
+
+        } catch (error) {
+            console.error('Get pending time logs error:', error);
+            res.status(500).json({ message: 'Erro interno do servidor' });
+        }
+    }
+
+    /**
+     * Get time log report with statistics
+     */
+    static async getTimeLogReport(req: Request, res: Response) {
+        const manager = req.user as User;
+        const { startDate, endDate, userId, department } = req.query;
+
+        try {
+            const timeLogRepository = AppDataSource.getRepository(UserCheckIn);
+
+            const queryBuilder = timeLogRepository
+                .createQueryBuilder('timeLog')
+                .leftJoinAndSelect('timeLog.user', 'user')
+                .leftJoinAndSelect('timeLog.approver', 'approver')
+                .where('user.companyId = :companyId', { companyId: manager.companyId });
+
+            // Filter by date range
+            if (startDate) {
+                queryBuilder.andWhere('timeLog.checkIn >= :startDate', { startDate: new Date(startDate as string) });
+            }
+            if (endDate) {
+                queryBuilder.andWhere('timeLog.checkIn <= :endDate', { endDate: new Date(endDate as string) });
+            }
+
+            // Filter by user
+            if (userId) {
+                queryBuilder.andWhere('user.id = :userId', { userId: Number(userId) });
+            }
+
+            // Filter by department
+            if (department) {
+                queryBuilder.andWhere('user.department = :department', { department });
+            }
+
+            const timeLogs = await queryBuilder
+                .orderBy('timeLog.checkIn', 'DESC')
+                .getMany();
+
+            // Calculate statistics
+            const totalApproved = timeLogs.filter(log => log.status === 'approved').length;
+            const totalPending = timeLogs.filter(log => log.status === 'pending_approval').length;
+            const totalRejected = timeLogs.filter(log => log.status === 'rejected').length;
+
+            // Calculate total hours worked (only approved logs with checkout)
+            let totalHoursWorked = 0;
+            const approvedLogsWithCheckout = timeLogs.filter(log =>
+                log.status === 'approved' && log.checkOut
+            );
+
+            approvedLogsWithCheckout.forEach(log => {
+                if (log.checkOut) {
+                    const hours = (new Date(log.checkOut).getTime() - new Date(log.checkIn).getTime()) / (1000 * 60 * 60);
+                    totalHoursWorked += hours;
+                }
+            });
+
+            // Calculate average hours per day
+            const uniqueDays = new Set(
+                approvedLogsWithCheckout.map(log =>
+                    new Date(log.checkIn).toISOString().split('T')[0]
+                )
+            );
+            const averageHoursPerDay = uniqueDays.size > 0 ? totalHoursWorked / uniqueDays.size : 0;
+
+            res.json({
+                timeLogs,
+                statistics: {
+                    totalApproved,
+                    totalPending,
+                    totalRejected,
+                    totalHoursWorked: Math.round(totalHoursWorked * 100) / 100,
+                    averageHoursPerDay: Math.round(averageHoursPerDay * 100) / 100
+                }
+            });
+
+        } catch (error) {
+            console.error('Get time log report error:', error);
             res.status(500).json({ message: 'Erro interno do servidor' });
         }
     }

@@ -145,18 +145,19 @@ export async function trackUserChanges(
         }
 
         // Criar registro de histórico
-        const history = historyRepo.create({
+        const historyData: Record<string, unknown> = {
             userId,
             fieldName,
-            oldValue: oldValue !== undefined ? JSON.stringify(oldValue) : null,
-            newValue: newValue !== undefined ? JSON.stringify(newValue) : null,
             diff: generateDiff(fieldName, oldValue, newValue),
             changedById,
-            justification,
-            ipAddress,
-            userAgent,
             companyId: oldData.companyId
-        });
+        };
+        if (oldValue !== undefined) historyData['oldValue'] = JSON.stringify(oldValue);
+        if (newValue !== undefined) historyData['newValue'] = JSON.stringify(newValue);
+        if (justification !== undefined) historyData['justification'] = justification;
+        if (ipAddress !== undefined) historyData['ipAddress'] = ipAddress;
+        if (userAgent !== undefined) historyData['userAgent'] = userAgent;
+        const history = historyRepo.create(historyData as Partial<UserMovementHistory>);
 
         changes.push(history);
     }
