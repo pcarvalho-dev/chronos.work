@@ -26,7 +26,9 @@
     "docker:logs": "docker-compose logs -f app",
     "docker:restart": "docker-compose restart app",
     "docker:shell": "docker-compose exec app sh",
-    "docker:clean": "docker-compose down -v && docker system prune -f"
+    "docker:clean": "docker-compose down -v && docker system prune -f",
+    "db:backup": "node scripts/db-backup.js",
+    "db:reset": "node scripts/db-reset.js"
   },
   "keywords": [],
   "author": "",
